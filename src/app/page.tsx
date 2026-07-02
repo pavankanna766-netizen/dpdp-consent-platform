@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export default async function HomePage() {
   const { userId } = await auth();
@@ -31,11 +32,5 @@ export default async function HomePage() {
     );
   }
 
-  return (
-    <main className="min-h-screen flex items-center justify-center">
-      <h1 className="text-4xl font-bold">
-        Welcome to PrivyStack 🚀
-      </h1>
-    </main>
-  );
+  redirect("/dashboard");
 }

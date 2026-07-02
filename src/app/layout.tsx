@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-import { siteConfig } from "@/config/site";
+import { siteConfig } from "../config/site";
 
 export const metadata: Metadata = {
   title: {
