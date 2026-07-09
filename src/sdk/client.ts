@@ -4,6 +4,8 @@ import {
 
 import { ApiClient } from "./api";
 
+import { logger } from "@/platform/logger";
+
 import { VisitorManager } from "./visitor";
 
 import type {
@@ -45,15 +47,19 @@ export class PrivyStackClient {
   }
 
   async init() {
-    console.log(
-      "🚀 PrivyStack initialized",
-      this.config
-    );
+    logger.info(
+  "PrivyStack initialized"
+);
 
-    console.log(
-      "Visitor:",
-      this.visitor.getVisitorId()
-    );
+logger.debug(
+  "SDK configuration",
+  this.config
+);
+
+logger.debug(
+  "Visitor ID",
+  this.visitor.getVisitorId()
+);
 
     // Verify that the configured template exists.
     await this.api.get(

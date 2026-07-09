@@ -2,6 +2,8 @@ import { consentRegistry } from "./registry";
 
 import type { PlatformService } from "../platform-service";
 
+import { logger } from "@/platform/logger";
+
 import type {
   ConsentCategory,
   ConsentDecision,
@@ -14,9 +16,9 @@ export class DefaultConsentEngine
 {
     readonly name = "consent-engine";
   initialize() {
-    console.log(
-      "🍪 ConsentEngine initialized"
-    );
+    logger.info(
+  "ConsentEngine initialized"
+);
   }
 
   getState(): ConsentState {

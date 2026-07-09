@@ -2,6 +2,8 @@ import type {
   PlatformService,
 } from "../platform-service";
 
+import { logger } from "@/platform/logger";
+
 import {
   localizationRegistry,
 } from "./registry";
@@ -25,9 +27,9 @@ export class LocalizationEngine
       englishProvider
     );
 
-    console.log(
-      "🌍 LocalizationEngine initialized"
-    );
+    logger.info(
+  "LocalizationEngine initialized"
+);
   }
 
   t(

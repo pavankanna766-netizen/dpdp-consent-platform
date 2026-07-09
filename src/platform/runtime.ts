@@ -3,6 +3,8 @@ import type { PlatformService } from "./platform-service";
 
 import { consentEngine } from "./consent";
 
+import { logger } from "@/platform/logger";
+
 import { exportEngine } from "./export";
 
 import { localizationEngine } from "./localization/engine";
@@ -28,9 +30,9 @@ class PlatformRuntime {
       service.initialize();
     }
 
-    console.log(
-      "🚀 PrivyStack Platform initialized"
-    );
+    logger.info(
+  "PrivyStack Platform initialized"
+);
   }
 }
 

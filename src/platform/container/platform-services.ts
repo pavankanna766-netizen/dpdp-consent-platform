@@ -12,8 +12,6 @@ export const PlatformServices = {
 
     JOBS:"jobs",
 
-    CONFIG:"config",
-
 } as const;
 
 export type PlatformServiceName =

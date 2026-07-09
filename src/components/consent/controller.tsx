@@ -64,9 +64,6 @@ export function ConsentController() {
                 visitorId
               );
 
-              console.log(
-                "Consent synced."
-              );
             } catch (error) {
               console.error(
                 "Failed to sync consent:",
@@ -94,9 +91,6 @@ export function ConsentController() {
                 visitorId
               );
 
-              console.log(
-                "Consent rejection synced."
-              );
             } catch (error) {
               console.error(
                 "Failed to sync rejection:",
