@@ -4,6 +4,8 @@ import { withPlatform } from "@/platform/action";
 
 import { auth } from "@clerk/nextjs/server";
 
+import { UnauthorizedError } from "@/platform/errors";
+
 import { ensureCompany } from "@/services/company.service";
 
 import {
@@ -22,7 +24,7 @@ export async function createTemplateAction(
     const { userId } = await auth();
 
     if (!userId) {
-      throw new Error("Unauthorized");
+      throw new UnauthorizedError();
     }
 
     const company = await ensureCompany(
@@ -48,7 +50,7 @@ export async function deleteTemplateAction(
     const { userId } = await auth();
 
     if (!userId) {
-      throw new Error("Unauthorized");
+      throw new UnauthorizedError();
     }
 
     await removeTemplate(templateId);
@@ -66,7 +68,7 @@ export async function publishTemplateAction(
     const { userId } = await auth();
 
     if (!userId) {
-      throw new Error("Unauthorized");
+      throw new UnauthorizedError();
     }
 
     await publishTemplateService(templateId);
@@ -85,7 +87,7 @@ export async function updateTemplateAction(
     const { userId } = await auth();
 
     if (!userId) {
-      throw new Error("Unauthorized");
+      throw new UnauthorizedError();
     }
 
     await editTemplate(templateId, {

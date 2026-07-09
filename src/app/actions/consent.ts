@@ -2,6 +2,8 @@
 
 import { auth } from "@clerk/nextjs/server";
 
+import { UnauthorizedError } from "@/platform/errors";
+
 import { ensureWorkspace } from "@/services/workspace.service";
 import { grantConsent } from "@/services/consent.service";
 
@@ -11,7 +13,7 @@ export async function acceptConsentAction(
   const { userId } = await auth();
 
   if (!userId) {
-    throw new Error("Unauthorized");
+    throw new UnauthorizedError();
   }
 
   const workspace =
@@ -28,7 +30,7 @@ export async function acceptConsentAction(
       workspace.template.id,
 
     subject_identifier:
-     visitorId,
+      visitorId,
 
     version:
       workspace.template.version,

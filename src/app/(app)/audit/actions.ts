@@ -3,6 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 
 import { withPlatform } from "@/platform/action";
+import { UnauthorizedError } from "@/platform/errors";
 
 import { ensureCompany } from "@/services/company.service";
 
@@ -13,7 +14,7 @@ export async function exportAuditLogsAction() {
     const { userId } = await auth();
 
     if (!userId) {
-      throw new Error("Unauthorized");
+      throw new UnauthorizedError();
     }
 
     const company = await ensureCompany(

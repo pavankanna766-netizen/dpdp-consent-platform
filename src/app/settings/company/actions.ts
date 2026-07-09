@@ -2,6 +2,8 @@
 
 import { auth } from "@clerk/nextjs/server";
 
+import { UnauthorizedError } from "@/platform/errors";
+
 import { ensureCompany } from "@/services/company.service";
 import { saveCompanySettings } from "@/services/company-settings.service";
 
@@ -13,7 +15,7 @@ export async function updateConsentSettings(
   const { userId } = await auth();
 
   if (!userId) {
-    throw new Error("Unauthorized");
+    throw new UnauthorizedError();
   }
 
   const company = await ensureCompany(

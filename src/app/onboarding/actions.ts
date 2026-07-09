@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 import { withPlatform } from "@/platform/action";
+import { UnauthorizedError } from "@/platform/errors";
 
 import {
   ensureCompany,
@@ -27,7 +28,7 @@ export async function saveOnboarding(
     const { userId } = await auth();
 
     if (!userId) {
-      throw new Error("Unauthorized");
+      throw new UnauthorizedError();
     }
 
     const company = await ensureCompany(

@@ -5,13 +5,13 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@clerk/nextjs/server";
 
-import { ensureCompany } from "@/services/company.service";
+import { UnauthorizedError } from "@/platform/errors";
+import { withPlatform } from "@/platform/action";
 
+import { ensureCompany } from "@/services/company.service";
 import { createDsarRequest } from "@/services/dsar.service";
 
 import type { RequestValues } from "./schema";
-
-import { withPlatform } from "@/platform/action";
 
 export async function createRequestAction(
   values: RequestValues
@@ -20,7 +20,7 @@ export async function createRequestAction(
     const { userId } = await auth();
 
     if (!userId) {
-      throw new Error("Unauthorized");
+      throw new UnauthorizedError();
     }
 
     const company =
