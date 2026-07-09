@@ -1,3 +1,5 @@
+import { RateLimitError } from "@/platform/errors";
+
 import { rateLimitEngine } from "@/platform/rate-limit";
 
 import type {
@@ -17,9 +19,7 @@ export function rateLimitMiddleware(
       );
 
     if (!result.allowed) {
-      throw new Error(
-        "RATE_LIMIT_EXCEEDED"
-      );
+      throw new RateLimitError();
     }
   };
 }

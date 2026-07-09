@@ -18,6 +18,10 @@ import {
 
 import { findDefaultTemplate } from "@/repositories/consent-template.repository";
 
+import { generatePublicToken } from "@/platform/core";
+
+import { NotFoundError } from "@/platform/errors";
+
 export async function createTemplate(values: {
   company_id: string;
   title: string;
@@ -96,15 +100,15 @@ export async function editTemplate(
   return data;
 }
 
-import { generatePublicToken } from "@/platform/core";
-
 export async function publishTemplateService(
   id: string
 ) {
   const template = await getTemplate(id);
 
   if (!template) {
-    throw new Error("Template not found");
+    throw new NotFoundError(
+      "Template"
+    );
   }
 
   const publicToken =

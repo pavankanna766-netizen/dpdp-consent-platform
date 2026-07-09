@@ -1,5 +1,6 @@
-import { grantConsent } from "./consent.service";
+import { NotFoundError } from "@/platform/errors";
 
+import { grantConsent } from "./consent.service";
 import { getPublishedTemplate } from "./consent-template.service";
 
 import type { ConsentRequest } from "@/platform/contracts";
@@ -13,8 +14,8 @@ export async function submitPublicConsent(
     );
 
   if (!template) {
-    throw new Error(
-      "Published template not found."
+    throw new NotFoundError(
+      "Published template"
     );
   }
 

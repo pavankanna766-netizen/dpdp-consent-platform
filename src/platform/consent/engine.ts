@@ -6,7 +6,6 @@ import { logger } from "@/platform/logger";
 
 import type {
   ConsentCategory,
-  ConsentDecision,
   ConsentEngine,
   ConsentState,
 } from "./types";

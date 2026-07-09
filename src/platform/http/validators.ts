@@ -1,3 +1,5 @@
+import { ValidationError } from "@/platform/errors";
+
 export function requireEnum<
   const T extends readonly string[]
 >(
@@ -9,8 +11,8 @@ export function requireEnum<
     value === null ||
     !allowed.includes(value)
   ) {
-    throw new Error(
-      `Invalid ${field}`
+    throw new ValidationError(
+      `Invalid ${field}.`
     );
   }
 

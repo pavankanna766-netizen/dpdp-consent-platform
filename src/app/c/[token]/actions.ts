@@ -1,9 +1,10 @@
 "use server";
 
+import { withPlatform } from "@/platform/action";
+import { NotFoundError } from "@/platform/errors";
+
 import { grantConsent } from "@/services/consent.service";
 import { getPublishedTemplate } from "@/services/consent-template.service";
-
-import { withPlatform } from "@/platform/action";
 
 export async function acceptConsentAction(
   token: string
@@ -13,11 +14,14 @@ export async function acceptConsentAction(
       await getPublishedTemplate(token);
 
     if (!template) {
-      throw new Error("Template not found");
+      throw new NotFoundError(
+        "Template"
+      );
     }
 
     await grantConsent({
       company_id: template.company_id,
+
       template_id: template.id,
 
       subject_identifier:

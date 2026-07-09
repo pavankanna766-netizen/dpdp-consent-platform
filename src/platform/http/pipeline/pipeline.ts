@@ -1,14 +1,7 @@
-import { NextRequest } from "next/server";
-
 import type {
   PipelineContext,
-  PipelineHandler,
   PipelineOptions,
 } from "./types";
-
-import type {
-  Middleware,
-} from "../middleware";
 
 export async function executePipeline<
   T,

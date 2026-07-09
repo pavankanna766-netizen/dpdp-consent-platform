@@ -1,3 +1,5 @@
+import { ContainerError } from "@/platform/errors";
+
 import {
   ExportFormat,
   ExportProvider,
@@ -17,8 +19,8 @@ class ExportRegistry {
         provider.id
       )
     ) {
-      throw new Error(
-        `Export provider "${provider.id}" already registered`
+      throw new ContainerError(
+        `Export provider "${provider.id}" already registered.`
       );
     }
 
@@ -35,8 +37,8 @@ class ExportRegistry {
       this.providers.get(format);
 
     if (!provider) {
-      throw new Error(
-        `Export provider "${format}" not found`
+      throw new ContainerError(
+        `Export provider "${format}" not found.`
       );
     }
 

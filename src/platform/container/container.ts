@@ -1,3 +1,5 @@
+import { ContainerError } from "@/platform/errors";
+
 import type { PlatformService } from "../platform-service";
 
 class ServiceRegistry {
@@ -11,8 +13,8 @@ class ServiceRegistry {
     service: PlatformService
   ) {
     if (this.services.has(name)) {
-      throw new Error(
-        `Service "${name}" already registered`
+      throw new ContainerError(
+        `Service "${name}" already registered.`
       );
     }
 
@@ -25,8 +27,8 @@ class ServiceRegistry {
     const service = this.services.get(name);
 
     if (!service) {
-      throw new Error(
-        `Service "${name}" not found`
+      throw new ContainerError(
+        `Service "${name}" not found.`
       );
     }
 
