@@ -5,5 +5,9 @@ export async function withPlatform<T>(
 ): Promise<T> {
   ensurePlatformInitialized();
 
-  return action();
+  try {
+    return await action();
+  } catch (error) {
+    throw error;
+  }
 }

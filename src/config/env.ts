@@ -31,4 +31,9 @@ export const env = {
     process.env.NEXT_PUBLIC_PRIVYSTACK_TEMPLATE_TOKEN,
     "NEXT_PUBLIC_PRIVYSTACK_TEMPLATE_TOKEN"
   ),
+
+  supabaseServiceRoleKey: required(
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  "SUPABASE_SERVICE_ROLE_KEY"
+),
 };

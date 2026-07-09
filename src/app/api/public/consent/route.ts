@@ -9,12 +9,13 @@ import { ConsentRequestSchema } from "@/platform/contracts";
 import {
   successResponse,
   validationErrorResponse,
-  internalServerErrorResponse,
 } from "@/platform/http/response";
 
 import {
   rateLimitMiddleware,
 } from "@/platform/http/middleware";
+
+import { handleHttpError } from "@/platform/http/error-handler";
 
 export async function POST(
   request: NextRequest
@@ -22,7 +23,6 @@ export async function POST(
   try {
     const json = await request.json();
 
-    // Validate request body at the boundary
     const body =
       ConsentRequestSchema.parse(json);
 
@@ -55,8 +55,6 @@ export async function POST(
       );
     }
 
-    console.error(error);
-
-    return internalServerErrorResponse();
+    return handleHttpError(error);
   }
 }

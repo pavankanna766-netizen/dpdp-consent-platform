@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
 
+import { handleHttpError } from "@/platform/http/error-handler";
+
 import {
   getPublishedTemplate,
 } from "@/services/consent-template.service";
@@ -57,8 +59,6 @@ export async function GET(
     template.is_required,
 });
   } catch (error) {
-    console.error(error);
-
-    return internalServerErrorResponse();
-  }
+  return handleHttpError(error);
+}
 }
