@@ -1,0 +1,1 @@
+export const DEFAULT_AUDIT_PAGE_SIZE = 25;

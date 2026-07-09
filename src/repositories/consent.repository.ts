@@ -1,0 +1,102 @@
+import { supabaseAdmin } from "@/lib/supabase/admin";
+
+export async function createConsent(values: {
+  company_id: string;
+  template_id: string;
+  subject_identifier: string;
+  version: number;
+  consent_text: string;
+  ip_address?: string;
+  user_agent?: string;
+  language?: string;
+  metadata?: Record<string, unknown>;
+  proof?: Record<string, unknown>;
+}) {
+  return supabaseAdmin
+    .from("consents")
+    .insert({
+      ...values,
+      status: "granted",
+    })
+    .select()
+    .single();
+}
+
+export async function withdrawConsent(
+  id: string
+) {
+  return supabaseAdmin
+    .from("consents")
+    .update({
+      status: "withdrawn",
+      withdrawn_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select()
+    .single();
+}
+
+export async function getConsentById(
+  id: string
+) {
+  return supabaseAdmin
+    .from("consents")
+    .select("*")
+    .eq("id", id)
+    .single();
+}
+
+export async function listConsents(
+  companyId: string
+) {
+  return supabaseAdmin
+    .from("consents")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("created_at", {
+      ascending: false,
+    });
+}
+
+export async function findActiveConsent(
+  companyId: string,
+  templateId: string,
+  subjectIdentifier: string
+) {
+  return supabaseAdmin
+    .from("consents")
+    .select("*")
+    .eq("company_id", companyId)
+    .eq("template_id", templateId)
+    .eq("subject_identifier", subjectIdentifier)
+    .eq("status", "granted")
+    .maybeSingle();
+}
+
+export async function updateConsent(
+  id: string,
+  values: {
+    metadata?: Record<
+      string,
+      unknown
+    >;
+
+    proof?: Record<
+      string,
+      unknown
+    >;
+
+    language?: string;
+
+    consent_text?: string;
+
+    version?: number;
+  }
+) {
+  return supabaseAdmin
+    .from("consents")
+    .update(values)
+    .eq("id", id)
+    .select()
+    .single();
+}
