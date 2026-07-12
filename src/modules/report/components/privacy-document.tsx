@@ -1,0 +1,251 @@
+import {
+  Document,
+  Page,
+  Text,
+  View,
+} from "@react-pdf/renderer";
+
+import type {
+  ScanReport,
+} from "@/modules/scanner/domain/report";
+
+import { styles } from "./styles";
+
+interface Props {
+  report: ScanReport;
+}
+
+export function PrivacyDocument({
+  report,
+}: Props) {
+  const scoreColor =
+    report.score >= 85
+      ? "#16a34a"
+      : report.score >= 60
+      ? "#ca8a04"
+      : "#dc2626";
+
+  return (
+    <Document>
+      <Page
+        size="A4"
+        style={styles.page}
+      >
+        <Text style={styles.title}>
+          PrivyStack Privacy Report
+        </Text>
+
+        <Text style={styles.subtitle}>
+          Automated Privacy & Cookie
+          Compliance Report
+        </Text>
+
+        {/* Executive Summary */}
+
+        <View
+          style={[
+            styles.section,
+            styles.card,
+          ]}
+        >
+          <Text style={styles.heading}>
+            Executive Summary
+          </Text>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>
+              Website
+            </Text>
+
+            <Text>
+              {report.url}
+            </Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>
+              Generated
+            </Text>
+
+            <Text>
+              {report.generatedAt}
+            </Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>
+              Privacy Score
+            </Text>
+
+            <Text
+              style={{
+                color: scoreColor,
+                fontWeight: "bold",
+              }}
+            >
+              {report.score}/100
+            </Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>
+              Risk
+            </Text>
+
+            <Text>
+              {report.risk.toUpperCase()}
+            </Text>
+          </View>
+        </View>
+
+        {/* Scan Summary */}
+
+        <View
+          style={[
+            styles.section,
+            styles.card,
+          ]}
+        >
+          <Text style={styles.heading}>
+            Scan Summary
+          </Text>
+
+          <View style={styles.row}>
+            <Text>
+              Cookies Found
+            </Text>
+
+            <Text>
+              {report.cookies}
+            </Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text>
+              Trackers Found
+            </Text>
+
+            <Text>
+              {report.trackers}
+            </Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text>
+              Compliance Findings
+            </Text>
+
+            <Text>
+              {report.findings}
+            </Text>
+          </View>
+        </View>
+
+        {/* Trackers */}
+
+        <View
+          style={[
+            styles.section,
+            styles.card,
+          ]}
+        >
+          <Text style={styles.heading}>
+            Detected Trackers
+          </Text>
+
+          {report.detections.length ===
+          0 ? (
+            <Text style={styles.text}>
+              No trackers detected.
+            </Text>
+          ) : (
+            report.detections.map(
+              (tracker) => (
+                <Text
+                  key={tracker.id}
+                  style={styles.text}
+                >
+                  • {tracker.provider} (
+                  {tracker.category})
+                </Text>
+              )
+            )
+          )}
+        </View>
+
+        {/* Findings */}
+
+        <View
+          style={[
+            styles.section,
+            styles.card,
+          ]}
+        >
+          <Text style={styles.heading}>
+            Compliance Findings
+          </Text>
+
+          {report.compliance.length ===
+          0 ? (
+            <Text style={styles.text}>
+              No compliance issues
+              detected.
+            </Text>
+          ) : (
+            report.compliance.map(
+              (finding) => (
+                <View
+                  key={finding.id}
+                  style={{
+                    marginBottom: 10,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontWeight:
+                        "bold",
+                    }}
+                  >
+                    {finding.title}
+                  </Text>
+
+                  <Text>
+                    Severity:{" "}
+                    {
+                      finding.severity
+                    }
+                  </Text>
+
+                  <Text>
+                    {
+                      finding.recommendation
+                    }
+                  </Text>
+                </View>
+              )
+            )
+          )}
+        </View>
+
+        {/* Footer */}
+
+        <View
+          style={[
+            styles.section,
+            styles.card,
+          ]}
+        >
+          <Text style={styles.footer}>
+            Generated by
+            PrivyStack
+          </Text>
+
+          <Text style={styles.footer}>
+            DPDP Compliance
+            Platform
+          </Text>
+        </View>
+      </Page>
+    </Document>
+  );
+}
