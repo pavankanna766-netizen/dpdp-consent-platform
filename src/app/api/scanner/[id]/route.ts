@@ -25,7 +25,7 @@ export async function GET(
     }
 
     const company = await ensureCompany(userId, "My Company");
-    const summary = await summaryService.get(id);
+    const summary = await summaryService.get(company.id, id);
 
     if (!summary || !summary.scan || summary.scan.company_id !== company.id) {
       return NextResponse.json({ error: "Scan not found" }, { status: 404 });

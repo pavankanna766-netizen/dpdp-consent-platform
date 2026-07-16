@@ -8,10 +8,12 @@ import {
 
 export class ReportService {
   async generate(
+    companyId: string,
     scanId: string
   ) {
     const summary =
       await summaryService.get(
+        companyId,
         scanId
       );
 

@@ -54,10 +54,12 @@ import {
 
 export class SummaryService {
   async get(
+    companyId: string,
     scanId: string
   ) {
     const summary =
       await getScanSummary(
+        companyId,
         scanId
       );
 
@@ -270,10 +272,12 @@ export class SummaryService {
   }
 
   async progress(
+    companyId: string,
     scanId: string
   ) {
     const scan =
       await getScanJob(
+        companyId,
         scanId
       );
 

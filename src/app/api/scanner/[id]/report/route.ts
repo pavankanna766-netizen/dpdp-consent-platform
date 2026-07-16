@@ -26,13 +26,13 @@ export async function GET(
     }
 
     const company = await ensureCompany(userId, "My Company");
-    const { data: scan } = await getScan(id);
+    const { data: scan } = await getScan(company.id, id);
 
     if (!scan || scan.company_id !== company.id) {
       return NextResponse.json({ error: "Scan not found" }, { status: 404 });
     }
 
-    const report = await reportService.generate(id);
+    const report = await reportService.generate(company.id, id);
     return NextResponse.json(report);
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Failed to generate scan report";

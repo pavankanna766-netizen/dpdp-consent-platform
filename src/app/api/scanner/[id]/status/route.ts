@@ -26,13 +26,13 @@ export async function GET(
     }
 
     const company = await ensureCompany(userId, "My Company");
-    const { data: scan } = await getScan(id);
+    const { data: scan } = await getScan(company.id, id);
 
     if (!scan || scan.company_id !== company.id) {
       return NextResponse.json({ error: "Scan not found" }, { status: 404 });
     }
 
-    const job = await jobService.get(id);
+    const job = await jobService.get(company.id, id);
 
     if (!job) {
       return NextResponse.json({ error: "Scan job not found" }, { status: 404 });

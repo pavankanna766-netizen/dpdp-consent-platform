@@ -26,6 +26,7 @@ export class LatestSummaryService {
     }
 
     return summaryService.get(
+      companyId,
       latestScan.id
     );
   }

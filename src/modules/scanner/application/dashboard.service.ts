@@ -4,9 +4,11 @@ import {
 
 export class DashboardService {
   async load(
+    companyId: string,
     scanId: string
   ) {
     return summaryService.get(
+      companyId,
       scanId
     );
   }

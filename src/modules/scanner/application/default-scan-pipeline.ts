@@ -51,6 +51,7 @@ export class DefaultScanPipeline
 
     try {
       await updateScanProgress(
+        context.companyId,
         scan.id,
         {
           stage:
@@ -65,6 +66,7 @@ export class DefaultScanPipeline
         );
 
       await updateScanProgress(
+        context.companyId,
         scan.id,
         {
           stage:
@@ -86,6 +88,7 @@ export class DefaultScanPipeline
       );
 
       await updateScanProgress(
+        context.companyId,
         scan.id,
         {
           stage:
@@ -128,6 +131,7 @@ export class DefaultScanPipeline
       ]);
 
       await updateScanProgress(
+        context.companyId,
         scan.id,
         {
           stage: "analysing",
@@ -138,6 +142,7 @@ export class DefaultScanPipeline
       const score = scoreEngine.calculate(findings);
 
       await completeScan(
+        context.companyId,
         scan.id,
         {
           status: "completed",
@@ -155,6 +160,7 @@ export class DefaultScanPipeline
       return scan.id;
     } catch (error) {
       await updateScanProgress(
+        context.companyId,
         scan.id,
         {
           status: "failed",

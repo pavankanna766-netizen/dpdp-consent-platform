@@ -27,13 +27,13 @@ export async function GET(
     }
 
     const company = await ensureCompany(userId, "My Company");
-    const { data: scan } = await getScan(id);
+    const { data: scan } = await getScan(company.id, id);
 
     if (!scan || scan.company_id !== company.id) {
       return NextResponse.json({ error: "Scan not found" }, { status: 404 });
     }
 
-    const buffer = await pdfService.generate(id);
+    const buffer = await pdfService.generate(company.id, id);
 
     return new NextResponse(
       new Uint8Array(buffer),

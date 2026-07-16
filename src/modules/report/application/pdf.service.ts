@@ -8,10 +8,12 @@ import {
 
 export class PdfService {
   async generate(
+    companyId: string,
     scanId: string
   ) {
     const report =
       await reportService.generate(
+        companyId,
         scanId
       );
 

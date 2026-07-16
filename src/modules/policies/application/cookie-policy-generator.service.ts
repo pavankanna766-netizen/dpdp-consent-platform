@@ -8,6 +8,7 @@ import {
 
 export class CookiePolicyGeneratorService {
   async generate(
+    companyId: string,
     scanId: string,
     company: {
       name: string;
@@ -16,6 +17,7 @@ export class CookiePolicyGeneratorService {
   ) {
     const cookies =
   await cookieInventoryService.get(
+    companyId,
     scanId
   );
 

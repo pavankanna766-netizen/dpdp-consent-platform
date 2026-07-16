@@ -8,10 +8,11 @@ import {
 
 export class JobService {
   async get(
+    companyId: string,
     id: string
   ) {
     const { data } =
-      await getScanJob(id);
+      await getScanJob(companyId, id);
 
     if (!data) {
       return null;

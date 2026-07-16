@@ -22,6 +22,7 @@ export class CookiePolicyDocumentService {
   ) {
     const policy =
       await cookiePolicyGeneratorService.generate(
+        company.id,
         scanId,
         {
           name: company.name,

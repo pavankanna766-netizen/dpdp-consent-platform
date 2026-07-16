@@ -30,10 +30,11 @@ export async function GET(
     const scanId = ScanIdSchema.parse(id);
 
     // Verify company ownership (ensures authenticated user has a company)
-    await ensureCompany(userId, "My Company");
+    const company = await ensureCompany(userId, "My Company");
 
     const progress =
       await summaryService.progress(
+        company.id,
         scanId
       );
 

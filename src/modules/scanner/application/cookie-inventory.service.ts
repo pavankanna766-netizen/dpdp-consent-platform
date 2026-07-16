@@ -8,12 +8,14 @@ import type {
 
 export class CookieInventoryService {
   async get(
+    companyId: string,
     scanId: string
   ): Promise<
     CookieInventoryItem[]
   > {
     const summary =
       await summaryService.get(
+        companyId,
         scanId
       );
 
