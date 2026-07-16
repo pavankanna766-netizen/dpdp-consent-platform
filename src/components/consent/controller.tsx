@@ -47,7 +47,7 @@ export function ConsentController() {
           onAccept={async () => {
             consentEngine.grant("analytics");
             consentEngine.grant("marketing");
-            consentEngine.grant("preferences");
+            consentEngine.grant("functional");
 
             saveConsent(
               consentEngine.getState()
@@ -74,7 +74,7 @@ export function ConsentController() {
           onReject={async () => {
             consentEngine.deny("analytics");
             consentEngine.deny("marketing");
-            consentEngine.deny("preferences");
+            consentEngine.deny("functional");
 
             saveConsent(
               consentEngine.getState()

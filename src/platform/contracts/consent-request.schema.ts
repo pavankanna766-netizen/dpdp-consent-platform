@@ -1,11 +1,14 @@
 import { z } from "zod";
 
+import { ConsentCategoriesSchema } from "./consent-record";
+
 export const ConsentRequestSchema = z.object({
-  templateToken: z.string().min(1),
+  templateToken: z.string().min(1).max(128),
 
   visitorId: z
     .string()
-    .startsWith("ps_v_"),
+    .startsWith("ps_v_")
+    .max(128),
 
   decision: z.enum([
     "accept",
@@ -13,22 +16,16 @@ export const ConsentRequestSchema = z.object({
     "withdraw",
   ]),
 
-  language: z.string().min(2),
+  language: z.string().min(2).max(16),
 
-  categories: z.object({
-    analytics: z.boolean(),
-    marketing: z.boolean(),
-    preferences: z.boolean(),
-  }),
+  categories: ConsentCategoriesSchema,
 
   metadata: z
     .object({
-      pageUrl: z.string().optional(),
-      referrer: z.string().optional(),
-      ipAddress: z.string().optional(),
-      userAgent: z.string().optional(),
-      bannerVersion: z.number().optional(),
-      policyVersion: z.number().optional(),
+      pageUrl: z.string().url().max(2_048).optional(),
+      referrer: z.string().url().max(2_048).optional(),
+      bannerVersion: z.number().int().positive().optional(),
+      policyVersion: z.number().int().positive().optional(),
     })
     .optional(),
 });

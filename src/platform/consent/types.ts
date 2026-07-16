@@ -2,7 +2,8 @@ export type ConsentCategory =
   | "necessary"
   | "analytics"
   | "marketing"
-  | "preferences";
+  | "functional"
+  | "personalization";
 
 export type ConsentDecision =
   | "granted"
@@ -22,5 +23,6 @@ export type ConsentState = {
   necessary: ConsentDecision;
   analytics: ConsentDecision;
   marketing: ConsentDecision;
-  preferences: ConsentDecision;
+  functional: ConsentDecision;
+  personalization: ConsentDecision;
 };

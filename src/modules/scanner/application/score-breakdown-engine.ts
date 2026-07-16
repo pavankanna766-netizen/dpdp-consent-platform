@@ -6,6 +6,10 @@ import type {
   ScoreBreakdown,
 } from "../domain/score";
 
+import {
+  FindingWeights,
+} from "./finding-weight";
+
 export class ScoreBreakdownEngine {
   calculate(
     findings: ComplianceFinding[]
@@ -15,27 +19,10 @@ export class ScoreBreakdownEngine {
     const items = [];
 
     for (const finding of findings) {
-      let impact = 0;
-
-      switch (
-        finding.severity
-      ) {
-        case "critical":
-          impact = 30;
-          break;
-
-        case "high":
-          impact = 20;
-          break;
-
-        case "medium":
-          impact = 10;
-          break;
-
-        case "low":
-          impact = 5;
-          break;
-      }
+      const impact =
+        finding.kind === "observation"
+          ? 0
+          : FindingWeights[finding.severity];
 
       score -= impact;
 
@@ -46,7 +33,10 @@ export class ScoreBreakdownEngine {
 
         impact,
 
-        type: "penalty" as const,
+        type:
+          impact > 0
+            ? "penalty" as const
+            : "reward" as const,
       });
     }
 

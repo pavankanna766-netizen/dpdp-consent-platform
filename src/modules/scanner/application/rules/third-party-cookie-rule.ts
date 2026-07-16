@@ -11,11 +11,22 @@ export const thirdPartyCookieRule: ComplianceRule = {
     "Third-party cookies should only be used with appropriate consent.",
 
   evaluate(input) {
-    const cookie =
-      input.cookies.find(
-        (cookie) =>
-          cookie.domain.startsWith(".")
+    const siteHost = input.pageSignals.siteHost;
+
+    if (!siteHost) {
+      return null;
+    }
+
+    const cookie = input.cookies.find((candidate) => {
+      const cookieHost = candidate.domain
+        .replace(/^\./, "")
+        .toLowerCase();
+
+      return (
+        cookieHost !== siteHost &&
+        !siteHost.endsWith(`.${cookieHost}`)
       );
+    });
 
     if (!cookie) {
       return null;
@@ -24,10 +35,12 @@ export const thirdPartyCookieRule: ComplianceRule = {
     return {
       id: "third-party-cookie",
 
-      severity: "medium",
+      kind: "observation",
+
+      severity: "info",
 
       title:
-        "Third-party cookie detected",
+        "Third-party cookie observed",
 
       recommendation:
         "Review third-party cookies and ensure users provide appropriate consent before they are set.",

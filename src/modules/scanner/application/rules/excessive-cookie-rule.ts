@@ -24,10 +24,12 @@ export const excessiveCookieRule: ComplianceRule = {
     return {
       id: "too-many-cookies",
 
-      severity: "medium",
+      kind: "observation",
+
+      severity: "info",
 
       title:
-        "Large number of cookies detected",
+        "Large cookie inventory observed",
 
       recommendation:
         "Review unnecessary cookies and remove obsolete ones.",

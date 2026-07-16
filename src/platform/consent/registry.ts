@@ -9,7 +9,8 @@ export class ConsentRegistry {
     necessary: "granted",
     analytics: "denied",
     marketing: "denied",
-    preferences: "denied",
+    functional: "denied",
+    personalization: "denied",
   };
 
   getState() {
@@ -29,7 +30,8 @@ export class ConsentRegistry {
       necessary: "granted",
       analytics: "denied",
       marketing: "denied",
-      preferences: "denied",
+      functional: "denied",
+      personalization: "denied",
     };
   }
 }

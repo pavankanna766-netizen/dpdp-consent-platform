@@ -26,10 +26,12 @@ export const unknownCookieRule: ComplianceRule = {
     return {
       id: "unknown-cookie",
 
-      severity: "low",
+      kind: "observation",
+
+      severity: "info",
 
       title:
-        "Unknown cookie category detected",
+        "Unclassified cookie observed",
 
       recommendation:
         "Classify unknown cookies and document their purpose.",

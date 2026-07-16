@@ -55,6 +55,7 @@ export function FindingsTable({
   <SeverityBadge
     severity={
       finding.severity as
+        | "info"
         | "critical"
         | "high"
         | "medium"

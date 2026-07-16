@@ -1,6 +1,8 @@
-import {
-  reportService,
-} from "@/modules/scanner";
+import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { ensureCompany } from "@/services/company.service";
+import { reportService } from "@/modules/scanner";
+import { getScan } from "@/repositories/scanner.repository";
 
 export async function GET(
   request: Request,
@@ -12,15 +14,28 @@ export async function GET(
     }>;
   }
 ) {
-  const { id } =
-    await params;
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const report =
-    await reportService.generate(
-      id
-    );
+    const { id } = await params;
+    if (!id || typeof id !== "string") {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    }
 
-  return Response.json(
-    report
-  );
+    const company = await ensureCompany(userId, "My Company");
+    const { data: scan } = await getScan(id);
+
+    if (!scan || scan.company_id !== company.id) {
+      return NextResponse.json({ error: "Scan not found" }, { status: 404 });
+    }
+
+    const report = await reportService.generate(id);
+    return NextResponse.json(report);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Failed to generate scan report";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }

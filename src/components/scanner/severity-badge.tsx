@@ -1,5 +1,6 @@
 interface Props {
   severity:
+    | "info"
     | "critical"
     | "high"
     | "medium"
@@ -10,6 +11,9 @@ export function SeverityBadge({
   severity,
 }: Props) {
   const styles = {
+    info:
+      "bg-slate-100 text-slate-700",
+
     critical:
       "bg-red-600 text-white",
 

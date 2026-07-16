@@ -32,6 +32,12 @@ export function PrivacyTrend({
             {current}
           </div>
 
+          <div className="mt-1 text-sm text-muted-foreground">
+            {previous === null
+              ? "No previous scan"
+              : `Previous: ${previous}`}
+          </div>
+
         </div>
 
         <div

@@ -1,4 +1,4 @@
-import { initializePlatform } from "./bootstrap";
+import { platformRuntime } from "./runtime";
 
 let initialized = false;
 
@@ -7,7 +7,7 @@ export function ensurePlatformInitialized() {
     return;
   }
 
-  initializePlatform();
+  platformRuntime.initialize();
 
   initialized = true;
 }

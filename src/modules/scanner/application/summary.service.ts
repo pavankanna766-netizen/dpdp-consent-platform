@@ -48,6 +48,10 @@ import {
   changeComparator,
 } from "./change-comparator";
 
+import {
+  FindingWeights,
+} from "./finding-weight";
+
 export class SummaryService {
   async get(
     scanId: string
@@ -56,6 +60,23 @@ export class SummaryService {
       await getScanSummary(
         scanId
       );
+
+    const consentModeFinding = summary.findings.find(
+      (f) => f.title === "google-consent-mode-data"
+    );
+
+    let parsedConsentMode;
+    if (consentModeFinding) {
+      try {
+        parsedConsentMode = JSON.parse(consentModeFinding.recommendation);
+      } catch (e) {
+        // Ignore
+      }
+    }
+
+    summary.findings = summary.findings.filter(
+      (f) => f.title !== "google-consent-mode-data"
+    );
 
     const dashboard =
       mapDashboardSummary(
@@ -66,6 +87,8 @@ export class SummaryService {
       executiveSummaryService.generate(
         dashboard.score,
         {
+          siteHost: undefined,
+
           cookies:
             summary.scan?.cookies_found
               ? new Array(
@@ -106,6 +129,13 @@ export class SummaryService {
                 f.title !==
                 "Privacy Policy not detected"
             ),
+
+          hasCookiePolicy:
+            summary.findings.every(
+              (f) =>
+                f.title !==
+                "Cookie Policy not detected"
+            ),
         },
         summary.detections.map(
           (d) => ({
@@ -131,6 +161,10 @@ export class SummaryService {
         summary.findings.map(
           (f) => ({
             id: f.id,
+            kind:
+              f.severity === "info"
+                ? "observation"
+                : "issue",
             severity:
               f.severity,
             title: f.title,
@@ -140,151 +174,83 @@ export class SummaryService {
         )
       );
 
-      const scoreBreakdown = {
-  score:
-    dashboard.score,
-
-  items:
-    summary.findings.map(
-      (finding) => ({
+    const scoreBreakdown = {
+      score: dashboard.score,
+      items: summary.findings.map((finding) => ({
         id: finding.id,
+        title: finding.title,
+        impact: FindingWeights[finding.severity as keyof typeof FindingWeights] ?? 0,
+        type: finding.severity === "info" ? "reward" : "penalty",
+      })),
+    };
 
-        title:
-          finding.title,
+    const technologyStack = mapTechnologyStack(
+      summary.detections.map((d) => ({
+        provider: d.provider,
+        category: d.category,
+      }))
+    );
 
-        impact:
-          finding.severity ===
-          "critical"
-            ? 30
-            : finding.severity ===
-              "high"
-            ? 20
-            : finding.severity ===
-              "medium"
-            ? 10
-            : 5,
+    const trendHistory = await getTrendHistory(
+      summary.scan!.company_id
+    );
 
-        type:
-          "penalty",
-      })
-    ),
-};
+    const trend = trendService.calculate(
+      trendHistory.data ?? []
+    );
 
-const technologyStack =
-  mapTechnologyStack(
-    summary.detections.map(
-      (d) => ({
-        provider:
-          d.provider,
+    const changes = changeDetector.compare(
+      dashboard.score,
+      trend.previous
+    );
 
-        category:
-          d.category,
-      })
-    )
-  );
-
-const trendHistory =
-  await getTrendHistory(
-    summary.scan.company_id
-  );
-
-const trend =
-  trendService.calculate(
-    trendHistory.data ?? []
-  );
-
-  const changes =
-  changeDetector.compare(
-    dashboard.score,
-    trend.previous
-  );
-
-  changes.push(
-  ...changeComparator.compare(
-    {
-      detections: [],
-
-      findings: [],
-    },
-    {
-      detections:
-        summary.detections.map(
-          (d) => ({
+    changes.push(
+      ...changeComparator.compare(
+        {
+          detections: [],
+          findings: [],
+        },
+        {
+          detections: summary.detections.map((d) => ({
             tracker: {
-              provider:
-                d.provider,
-
-              category:
-                d.category,
-
-              id:
-                d.provider,
-
-              requiresConsent:
-                true,
-
+              provider: d.provider,
+              category: d.category,
+              id: d.provider,
+              requiresConsent: true,
               cookies: [],
-
               scripts: [],
-
               domains: [],
-
-              description:
-                "",
+              description: "",
             },
-
-            confidence:
-              100,
-
+            confidence: 100,
             matchedBy: [],
-
             evidence: [],
-          })
-        ),
-
-      findings:
-        summary.findings.map(
-          (f) => ({
+          })),
+          findings: summary.findings.map((f) => ({
             id: f.id,
+            kind: f.severity === "info" ? "observation" : "issue",
+            severity: f.severity,
+            title: f.title,
+            recommendation: f.recommendation,
+          })),
+        }
+      )
+    );
 
-            severity:
-              f.severity,
+    const consentMode = mapConsentMode(
+      parsedConsentMode ?? consentModeService.detect([])
+    );
 
-            title:
-              f.title,
-
-            recommendation:
-              f.recommendation,
-          })
-        ),
-    }
-  )
-);
-
-  const consentMode =
-  mapConsentMode(
-    consentModeService.detect(
-      []
-    )
-  );
-
-   return {
-  ...summary,
-
-  dashboard,
-
-  executiveSummary,
-
-  scoreBreakdown,
-
-  trend,
-
-  technologyStack,
-
-  consentMode,
-
-  changes,
-};
+    return {
+      ...summary,
+      dashboard,
+      executiveSummary,
+      scoreBreakdown,
+      trend,
+      technologyStack,
+      consentMode,
+      changes,
+    };
   }
 
   async latest(
@@ -304,26 +270,24 @@ const trend =
   }
 
   async progress(
-  scanId: string
-) {
-  const scan =
-    await getScanJob(
-      scanId
-    );
+    scanId: string
+  ) {
+    const scan =
+      await getScanJob(
+        scanId
+      );
 
-  if (!scan.data) {
-    throw new Error(
-      "Scan not found."
+    if (!scan.data) {
+      throw new Error(
+        "Scan not found."
+      );
+    }
+
+    return progressService.fromScan(
+      scan.data
     );
   }
-
-  return progressService.fromScan(
-    scan.data
-  );
 }
-}
-
-
 
 export const summaryService =
   new SummaryService();

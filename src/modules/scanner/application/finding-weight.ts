@@ -1,6 +1,7 @@
 export const FindingWeights = {
-  critical: 25,
-  high: 15,
-  medium: 8,
-  low: 3,
+  info: 0,
+  critical: 20,
+  high: 10,
+  medium: 5,
+  low: 2,
 } as const;

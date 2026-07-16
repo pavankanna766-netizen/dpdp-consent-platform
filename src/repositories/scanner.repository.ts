@@ -1,5 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
+import { cache } from "react";
+
 export async function createScan(
   values: {
     company_id: string;
@@ -57,7 +59,7 @@ export async function completeScan(
     .single();
 }
 
-export async function getScan(
+export const getScan = cache(async function (
   id: string
 ) {
   return supabaseAdmin
@@ -65,9 +67,9 @@ export async function getScan(
     .select("*")
     .eq("id", id)
     .single();
-}
+});
 
-export async function getLatestScan(
+export const getLatestScan = cache(async function (
   companyId: string
 ) {
   return supabaseAdmin
@@ -79,9 +81,9 @@ export async function getLatestScan(
     })
     .limit(1)
     .single();
-}
+});
 
-export async function listRecentScans(
+export const listRecentScans = cache(async function (
   companyId: string,
   limit = 10
 ) {
@@ -93,9 +95,9 @@ export async function listRecentScans(
       ascending: false,
     })
     .limit(limit);
-}
+});
 
-export async function getScanSummary(
+export const getScanSummary = cache(async function (
   scanId: string
 ) {
   const [
@@ -133,9 +135,9 @@ export async function getScanSummary(
     findings:
       findings.data ?? [],
   };
-}
+});
 
-export async function getScanJob(
+export const getScanJob = cache(async function (
   id: string
 ) {
   return supabaseAdmin
@@ -154,9 +156,9 @@ export async function getScanJob(
     )
     .eq("id", id)
     .single();
-}
+});
 
-export async function getTrendHistory(
+export const getTrendHistory = cache(async function (
   companyId: string,
   limit = 10
 ) {
@@ -173,4 +175,4 @@ export async function getTrendHistory(
       ascending: false,
     })
     .limit(limit);
-}
+});

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "npx tsx --env-file=.env.local src/tests/run-tests.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.5.12",
@@ -23,6 +24,7 @@
     "pdf-lib": "^1.17.1",
     "playwright": "^1.61.1",
     "radix-ui": "^1.6.1",
+    "razorpay": "^2.9.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.80.0",

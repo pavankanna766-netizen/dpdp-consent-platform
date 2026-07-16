@@ -25,10 +25,12 @@ export const sessionCookieRule: ComplianceRule = {
     return {
       id: "session-cookie",
 
-      severity: "low",
+      kind: "observation",
+
+      severity: "info",
 
       title:
-        "Session cookie detected",
+        "Session cookie observed",
 
       recommendation:
         "Document the purpose of session cookies and ensure they are essential where possible.",

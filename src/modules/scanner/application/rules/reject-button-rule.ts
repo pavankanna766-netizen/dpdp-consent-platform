@@ -20,6 +20,8 @@ export const rejectButtonRule: ComplianceRule =
       return {
         id: "reject-button",
 
+        kind: "issue",
+
         severity: "medium",
 
         title:

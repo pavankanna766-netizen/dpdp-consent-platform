@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ export function WithdrawButton({
 
   const [pending, startTransition] =
     useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   function withdraw() {
     const confirmed = window.confirm(
@@ -26,24 +27,37 @@ export function WithdrawButton({
 
     if (!confirmed) return;
 
-    startTransition(async () => {
-      await withdrawConsentAction(
-        consentId
-      );
+    setError(null);
 
-      router.refresh();
+    startTransition(async () => {
+      try {
+        await withdrawConsentAction(consentId);
+        router.refresh();
+      } catch {
+        setError(
+          "Consent could not be withdrawn. Please try again."
+        );
+      }
     });
   }
 
   return (
-    <Button
-      variant="destructive"
-      disabled={pending}
-      onClick={withdraw}
-    >
-      {pending
-        ? "Withdrawing..."
-        : "Withdraw Consent"}
-    </Button>
+    <div className="space-y-2">
+      <Button
+        variant="destructive"
+        disabled={pending}
+        onClick={withdraw}
+      >
+        {pending
+          ? "Withdrawing..."
+          : "Withdraw Consent"}
+      </Button>
+
+      {error && (
+        <p className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }

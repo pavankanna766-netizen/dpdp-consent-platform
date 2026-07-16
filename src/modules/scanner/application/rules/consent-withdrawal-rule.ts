@@ -12,13 +12,19 @@ export const consentWithdrawalRule: ComplianceRule = {
 
   evaluate(input) {
     if (
-      input.pageSignals.hasManagePreferences
+      input.pageSignals.hasManagePreferences ||
+      !input.pageSignals.hasConsentBanner ||
+      !input.detections.some(
+        (d) => d.tracker.requiresConsent
+      )
     ) {
       return null;
     }
 
     return {
       id: "consent-withdrawal",
+
+      kind: "issue",
 
       severity: "medium",
 

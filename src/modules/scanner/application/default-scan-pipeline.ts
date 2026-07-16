@@ -8,6 +8,8 @@ import { crawlerService } from "./crawler.service";
 import { detectionService } from "./detection.service";
 import { complianceService } from "./compliance.service";
 import { scoreEngine } from "./score-engine";
+import { consentModeService } from "./consent-mode.service";
+import { createFindings } from "@/repositories/finding.repository";
 
 import type {
   ScanContext,
@@ -95,70 +97,58 @@ export class DefaultScanPipeline
       );
 
       const pageSignals = {
-  hasConsentBanner:
-    crawlResult.hasConsentBanner,
+        siteHost: crawlResult.siteHost,
+        hasConsentBanner: crawlResult.hasConsentBanner,
+        hasRejectButton: crawlResult.hasRejectButton,
+        hasManagePreferences: crawlResult.hasManagePreferences,
+        hasPrivacyPolicy: crawlResult.hasPrivacyPolicy,
+        hasCookiePolicy: crawlResult.hasCookiePolicy,
+      };
 
-  hasRejectButton:
-    crawlResult.hasRejectButton,
+      const findings = await complianceService.persist(
+        scan.id,
+        detections,
+        crawlResult.cookies,
+        pageSignals
+      );
 
-  hasManagePreferences:
-    crawlResult.hasManagePreferences,
+      const consentModeResult = consentModeService.detect(
+        crawlResult.inlineScripts,
+        crawlResult.consentMode
+      );
 
-  hasPrivacyPolicy:
-    crawlResult.hasPrivacyPolicy,
-};
-
-const findings =
-  await complianceService.persist(
-    scan.id,
-    detections,
-    crawlResult.cookies,
-    pageSignals
-  );
+      await createFindings([
+        {
+          scan_id: scan.id,
+          severity: "info",
+          title: "google-consent-mode-data",
+          recommendation: JSON.stringify(consentModeResult),
+          resolved: false,
+        },
+      ]);
 
       await updateScanProgress(
         scan.id,
         {
-          stage:
-            "analysing",
+          stage: "analysing",
           progress: 90,
         }
       );
 
-      const score =
-        scoreEngine.calculate(
-          findings
-        );
+      const score = scoreEngine.calculate(findings);
 
       await completeScan(
         scan.id,
         {
-          status:
-            "completed",
-
-          stage:
-            "completed",
-
+          status: "completed",
+          stage: "completed",
           progress: 100,
-
-          completed_at:
-            new Date().toISOString(),
-
-          duration_ms:
-            Date.now() -
-            startedAt.getTime(),
-
-          overall_score:
-            score,
-
-          cookies_found:
-            crawlResult.cookies.length,
-
-          trackers_found:
-            detections.length,
-
-          findings_count:
-            findings.length,
+          completed_at: new Date().toISOString(),
+          duration_ms: Date.now() - startedAt.getTime(),
+          overall_score: score,
+          cookies_found: crawlResult.cookies.length,
+          trackers_found: detections.length,
+          findings_count: findings.length,
         }
       );
 
@@ -167,16 +157,11 @@ const findings =
       await updateScanProgress(
         scan.id,
         {
-          status:
-            "failed",
-
-          stage:
-            "completed",
-
+          status: "failed",
+          stage: "completed",
           progress: 100,
         }
       );
-
       throw error;
     }
   }

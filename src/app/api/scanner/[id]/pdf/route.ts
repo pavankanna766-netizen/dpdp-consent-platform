@@ -1,8 +1,9 @@
 export const runtime = "nodejs";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import {
-  pdfService,
-} from "@/modules/report";
+import { ensureCompany } from "@/services/company.service";
+import { pdfService } from "@/modules/report";
+import { getScan } from "@/repositories/scanner.repository";
 
 export async function GET(
   request: Request,
@@ -14,24 +15,38 @@ export async function GET(
     }>;
   }
 ) {
-  const { id } = await params;
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const buffer =
-    await pdfService.generate(id);
+    const { id } = await params;
+    if (!id || typeof id !== "string") {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    }
 
- return new NextResponse(
-  new Uint8Array(buffer),
-  {
-    headers: {
-      "Content-Type":
-        "application/pdf",
+    const company = await ensureCompany(userId, "My Company");
+    const { data: scan } = await getScan(id);
 
-      "Content-Disposition":
-        'attachment; filename="PrivyStack-Privacy-Report.pdf"',
+    if (!scan || scan.company_id !== company.id) {
+      return NextResponse.json({ error: "Scan not found" }, { status: 404 });
+    }
 
-      "Cache-Control":
-        "no-store",
-    },
+    const buffer = await pdfService.generate(id);
+
+    return new NextResponse(
+      new Uint8Array(buffer),
+      {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": 'attachment; filename="PrivyStack-Privacy-Report.pdf"',
+          "Cache-Control": "no-store",
+        },
+      }
+    );
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Failed to generate PDF report";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
-);
 }

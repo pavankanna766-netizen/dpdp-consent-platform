@@ -9,3 +9,5 @@ export * from "./application/report.service";
 export * from "./application/job.service";
 export * from "./application/score-engine";
 export * from "./application/progress.service";
+export * from "./application/cookie-inventory.service";
+export * from "./application/latest-summary.service";

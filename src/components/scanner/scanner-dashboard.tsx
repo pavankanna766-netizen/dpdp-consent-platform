@@ -21,6 +21,7 @@ ProgressCard,
 TechnologyStackCard,
 ConsentModeCard,
 ChangeSummary,
+GenerateCookiePolicyButton,
 } from "@/components/scanner";
 
 import {
@@ -336,12 +337,16 @@ export function ScannerDashboard() {
 />
 
       {selectedScanId && (
-        <DownloadPdfButton
-          scanId={
-            selectedScanId
-          }
-        />
-      )}
+  <div className="flex gap-3">
+    <DownloadPdfButton
+      scanId={selectedScanId}
+    />
+
+    <GenerateCookiePolicyButton
+      scanId={selectedScanId}
+    />
+  </div>
+)}
 
       <div className="grid grid-cols-4 gap-4">
         <SummaryCard

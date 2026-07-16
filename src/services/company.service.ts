@@ -3,6 +3,7 @@ import {
   findCompanyByClerkUserId,
   completeCompanyOnboarding,
 } from "@/repositories/company.repository";
+import { ForbiddenError } from "@/platform/errors";
 
 export async function ensureCompany(
   clerkUserId: string,
@@ -45,4 +46,22 @@ export async function completeOnboarding(
   if (error) {
     throw error;
   }
+}
+
+export async function ensureCompanyOwner(
+  clerkUserId: string,
+  companyName: string
+) {
+  const { data, error } = await findCompanyByClerkUserId(clerkUserId);
+  if (error) throw error;
+
+  if (!data?.companies) {
+    return ensureCompany(clerkUserId, companyName);
+  }
+
+  if (data.role !== "owner") {
+    throw new ForbiddenError();
+  }
+
+  return data.companies;
 }

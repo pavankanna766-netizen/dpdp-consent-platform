@@ -3,6 +3,7 @@ import type {
 } from "../evidence-policy";
 
 import { sha256 } from "@/platform/security";
+import type { ConsentCategories } from "@/platform/contracts";
 
 function simplifyUserAgent(
   userAgent: string
@@ -45,9 +46,13 @@ export interface EvidenceInput {
 
   referrer?: string;
 
-  bannerVersion?: string;
+  bannerVersion?: number;
 
   policyVersion?: number;
+
+  purpose?: string;
+
+  categories?: ConsentCategories;
 }
 
 export interface BuiltEvidence {
@@ -66,15 +71,33 @@ export function buildEvidence(
   input: EvidenceInput,
   policy: ConsentEvidencePolicy
 ): BuiltEvidence {
-  const metadata: Record<
-    string,
-    unknown
-  > = {};
+  const metadata: Record<string, unknown> = {};
 
-  const proof: Record<
-    string,
-    unknown
-  > = {};
+  const proof: Record<string, unknown> = {};
+
+  if (input.purpose) {
+    metadata.purpose = input.purpose;
+  }
+
+  if (input.categories) {
+    metadata.categories = input.categories;
+  }
+
+  if (policy.storePageUrl && input.pageUrl) {
+    metadata.pageUrl = input.pageUrl;
+  }
+
+  if (policy.storeReferrer && input.referrer) {
+    metadata.referrer = input.referrer;
+  }
+
+  if (policy.storeBannerVersion && input.bannerVersion) {
+    metadata.bannerVersion = input.bannerVersion;
+  }
+
+  if (policy.storePolicyVersion && input.policyVersion) {
+    metadata.policyVersion = input.policyVersion;
+  }
 
   return {
  ipAddress:

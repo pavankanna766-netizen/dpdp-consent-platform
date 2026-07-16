@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { z } from "zod";
 
 import { ensureCompany } from "@/services/company.service";
 import {
@@ -9,6 +10,20 @@ import {
 
 const pipeline = new DefaultScanPipeline();
 const orchestrator = new ScanOrchestrator(pipeline);
+
+const scanRequestSchema = z.object({
+  url: z
+    .string()
+    .trim()
+    .url("Enter a valid website URL.")
+    .refine(
+      (value) => {
+        const protocol = new URL(value).protocol;
+        return protocol === "http:" || protocol === "https:";
+      },
+      "Only HTTP and HTTPS websites can be scanned."
+    ),
+});
 
 export async function POST(
   request: NextRequest
@@ -29,28 +44,45 @@ export async function POST(
     }
 
     const body = await request.json();
-    console.log("BODY:", body);
+    const parsedBody = scanRequestSchema.safeParse(body);
+
+    if (!parsedBody.success) {
+      return Response.json(
+        {
+          success: false,
+          error: parsedBody.error.issues[0]?.message ?? "Invalid scan request.",
+        },
+        { status: 400 }
+      );
+    }
 
     const company = await ensureCompany(
       userId,
       "My Company"
     );
-    console.log("COMPANY:", company);
 
     const scanId =
       await orchestrator.scan({
         companyId: company.id,
-        url: body.url,
+        url: parsedBody.data.url,
       });
-
-    console.log("SCAN ID:", scanId);
 
     return Response.json({
       success: true,
       scanId,
     });
   } catch (error) {
-    console.error("SCAN ROUTE ERROR:", error);
+    if (error instanceof SyntaxError) {
+      return Response.json(
+        {
+          success: false,
+          error: "Request body must be valid JSON.",
+        },
+        { status: 400 }
+      );
+    }
+
+    console.error("Scanner request failed", error);
 
     return Response.json(
       {

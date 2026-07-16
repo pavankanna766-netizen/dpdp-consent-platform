@@ -1,3 +1,5 @@
+import type { ConsentCategories } from "./consent-record";
+
 export interface ConsentRequest {
   templateToken: string;
 
@@ -10,20 +12,12 @@ export interface ConsentRequest {
 
   language: string;
 
-  categories: {
-    analytics: boolean;
-    marketing: boolean;
-    preferences: boolean;
-  };
+  categories: ConsentCategories;
 
   metadata?: {
     pageUrl?: string;
 
     referrer?: string;
-
-    ipAddress?: string;
-
-    userAgent?: string;
 
     bannerVersion?: number;
 

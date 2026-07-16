@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 
 export function successResponse(
   data: unknown,
-  status = 200
+  status = 200,
+  init?: Omit<ResponseInit, "status">
 ) {
   return NextResponse.json(
     {
@@ -10,6 +11,7 @@ export function successResponse(
       data,
     },
     {
+      ...init,
       status,
     }
   );

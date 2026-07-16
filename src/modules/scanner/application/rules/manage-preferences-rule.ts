@@ -20,6 +20,8 @@ export const managePreferencesRule: ComplianceRule =
       return {
         id: "manage-preferences",
 
+        kind: "issue",
+
         severity: "low",
 
         title:

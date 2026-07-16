@@ -1,10 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
-import Link from "next/link";
 
-import { DataTable } from "@/components/table";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { ConsentStatusBadge } from "@/components/consents/consent-status-badge";
+import { ConsentsTable } from "@/components/consents/consents-table";
 
 import { ensureCompany } from "@/services/company.service";
 import {
@@ -63,55 +61,11 @@ export default async function ConsentsPage() {
       </div>
 
       {consents.length === 0 ? (
-        <div className="rounded-xl border bg-white p-10 text-center text-gray-500">
+        <div className="rounded-xl border border-gray-100 bg-white p-12 text-center text-gray-500 shadow-sm">
           No consents have been collected yet.
         </div>
       ) : (
-        <DataTable
-          headers={[
-            "Subject",
-            "Status",
-            "Granted",
-            "Version",
-            "Action",
-          ]}
-        >
-          {consents.map((consent) => (
-            <tr
-              key={consent.id}
-              className="border-b"
-            >
-              <td className="px-6 py-4">
-                {consent.subject_identifier}
-              </td>
-
-              <td className="px-6 py-4">
-                <ConsentStatusBadge
-                  status={consent.status}
-                />
-              </td>
-
-              <td className="px-6 py-4">
-                {new Date(
-                  consent.granted_at
-                ).toLocaleString()}
-              </td>
-
-              <td className="px-6 py-4">
-                {consent.version}
-              </td>
-
-              <td className="px-6 py-4">
-                <Link
-                  href={`/consents/${consent.id}`}
-                  className="font-medium text-blue-600 hover:underline"
-                >
-                  View
-                </Link>
-              </td>
-            </tr>
-          ))}
-        </DataTable>
+        <ConsentsTable consents={consents} />
       )}
     </div>
   );

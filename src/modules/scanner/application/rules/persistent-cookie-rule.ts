@@ -35,10 +35,12 @@ export const persistentCookieRule: ComplianceRule = {
     return {
       id: "persistent-cookie",
 
-      severity: "medium",
+      kind: "observation",
+
+      severity: "info",
 
       title:
-        "Persistent cookie detected",
+        "Long-lived cookie observed",
 
       recommendation:
         "Review whether long-lived cookies are required and reduce their lifetime if possible.",

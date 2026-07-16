@@ -26,10 +26,12 @@ export const consentBannerRule: ComplianceRule =
       return {
         id: "consent-banner",
 
+        kind: "issue",
+
         severity: "high",
 
         title:
-          "Consent banner not detected",
+          "Consent controls not detected",
 
         recommendation:
           "Display a consent banner before loading analytics or marketing technologies.",

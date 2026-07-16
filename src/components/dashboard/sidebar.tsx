@@ -12,6 +12,37 @@ const sections = [
         href: "/dashboard",
         icon: "🏠",
       },
+      {
+        label: "Scanner",
+        href: "/dashboard/scanner",
+        icon: "🔍",
+      },
+    ],
+  },
+
+  {
+    title: "Privacy",
+    items: [
+      {
+        label: "Privacy Policy",
+        href: "/dashboard/policies/privacy",
+        icon: "🛡️",
+      },
+      {
+        label: "Cookie Policy",
+        href: "/dashboard/policies/cookies",
+        icon: "📄",
+      },
+      {
+        label: "Cookie Banner",
+        href: "/dashboard/banner",
+        icon: "🍪",
+      },
+      {
+        label: "Trust Center",
+        href: "/dashboard/trust",
+        icon: "🤝",
+      },
     ],
   },
 
@@ -26,23 +57,7 @@ const sections = [
       {
         label: "Consents",
         href: "/consents",
-        icon: "📄",
-      },
-    ],
-  },
-
-  {
-    title: "Privacy",
-    items: [
-      {
-        label: "Privacy Policies",
-        href: "/policies",
-        icon: "🛡️",
-      },
-      {
-        label: "Cookie Banner",
-        href: "/cookies",
-        icon: "🍪",
+        icon: "✅",
       },
     ],
   },
@@ -53,7 +68,7 @@ const sections = [
       {
         label: "Requests",
         href: "/requests",
-        icon: "📄",
+        icon: "📨",
       },
       {
         label: "Audit Logs",
@@ -67,25 +82,9 @@ const sections = [
     title: "Organization",
     items: [
       {
-        label: "Team",
-        href: "/team",
-        icon: "👥",
-      },
-      {
         label: "Company Settings",
-        href: "/settings",
+        href: "/settings/company",
         icon: "⚙️",
-      },
-    ],
-  },
-
-  {
-    title: "",
-    items: [
-      {
-        label: "Billing",
-        href: "/billing",
-        icon: "💳",
       },
     ],
   },

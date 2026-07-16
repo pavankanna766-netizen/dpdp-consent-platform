@@ -16,6 +16,7 @@ import {
 } from "@/platform/http/middleware";
 
 import { handleHttpError } from "@/platform/http/error-handler";
+import { withPlatform } from "@/platform/action";
 
 export async function POST(
   request: NextRequest
@@ -26,7 +27,7 @@ export async function POST(
     const body =
       ConsentRequestSchema.parse(json);
 
-    return executePipeline({
+    return withPlatform(() => executePipeline({
       request,
 
       body,
@@ -38,15 +39,17 @@ export async function POST(
         ),
       ],
 
-      handler: async ({ body }) => {
-        const consent =
-          await submitPublicConsent(body);
-
-        return successResponse({
-          consentId: consent.id,
+      handler: async ({ body, clientIp, request }) => {
+        const result = await submitPublicConsent(body, {
+          ipAddress: clientIp.split(",")[0]?.trim(),
+          userAgent: request.headers
+            .get("user-agent")
+            ?.slice(0, 512),
         });
+
+        return successResponse(result);
       },
-    });
+    }));
   } catch (error) {
     if (error instanceof ZodError) {
       return validationErrorResponse(

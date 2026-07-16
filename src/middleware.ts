@@ -11,8 +11,18 @@ const isPublicRoute = createRouteMatcher([
   // Public consent APIs
   "/api/public(.*)",
 
+  // Public banner SDK APIs (not admin management routes)
+  "/api/banner/consent(.*)",
+  "/api/banner/displayed(.*)",
+  "/api/banner/preferences(.*)",
+  "/api/banner/receipt(.*)",
+  "/api/banner/runtime(.*)",
+
   // Public consent pages
   "/c(.*)",
+
+  // Public-facing pages (privacy policy, cookie policy, trust center)
+  "/p/(.*)",
 ]);
 
 export default clerkMiddleware(

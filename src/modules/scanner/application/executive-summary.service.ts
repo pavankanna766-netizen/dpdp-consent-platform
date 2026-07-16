@@ -57,6 +57,7 @@ export class ExecutiveSummaryService {
       `PrivyStack scanned the website and found ${crawl.cookies.length} cookies, ${detections.length} trackers and ${findings.length} compliance findings. ` +
       `${crawl.hasConsentBanner ? "A consent banner was detected." : "No consent banner was detected."} ` +
       `${crawl.hasPrivacyPolicy ? "A Privacy Policy was detected." : "No Privacy Policy was detected."} ` +
+      `${crawl.hasCookiePolicy ? "A Cookie Policy was detected." : "No Cookie Policy was detected."} ` +
       `${providers ? `Detected trackers include ${providers}. ` : ""}` +
       `Overall privacy risk is ${risk}.`;
 

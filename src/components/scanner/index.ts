@@ -66,3 +66,5 @@ export * from "./technology-stack-card";
 export * from "./consent-mode-card";
 
 export * from "./change-summary";
+
+export * from "./generate-cookie-policy-button";

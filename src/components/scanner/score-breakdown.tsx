@@ -32,8 +32,16 @@ export function ScoreBreakdown({
                 {item.title}
               </div>
 
-              <div className="font-semibold text-red-600">
-                -{item.impact}
+              <div
+                className={
+                  item.impact > 0
+                    ? "font-semibold text-red-600"
+                    : "font-semibold text-slate-500"
+                }
+              >
+                {item.impact > 0
+                  ? `-${item.impact}`
+                  : "Informational"}
               </div>
             </div>
           )

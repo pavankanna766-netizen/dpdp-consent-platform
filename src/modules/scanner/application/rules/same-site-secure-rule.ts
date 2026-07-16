@@ -24,8 +24,10 @@ export const sameSiteSecureRule: ComplianceRule = {
       return null;
     }
 
-    return {
-      id: "same-site-none-secure",
+      return {
+        id: "same-site-none-secure",
+
+        kind: "issue",
 
       severity: "high",
 

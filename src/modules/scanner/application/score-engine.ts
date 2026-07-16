@@ -6,33 +6,23 @@ import {
   scoreBreakdownEngine,
 } from "./score-breakdown-engine";
 
+import {
+  FindingWeights,
+} from "./finding-weight";
+
 export class ScoreEngine {
   calculate(
     findings: ComplianceFinding[]
   ): number {
-    let score = 100;
+    const penalty = findings.reduce(
+      (total, finding) =>
+        finding.kind === "observation"
+          ? total
+          : total + FindingWeights[finding.severity],
+      0
+    );
 
-    for (const finding of findings) {
-      switch (finding.severity) {
-        case "critical":
-          score -= 30;
-          break;
-
-        case "high":
-          score -= 20;
-          break;
-
-        case "medium":
-          score -= 10;
-          break;
-
-        case "low":
-          score -= 5;
-          break;
-      }
-    }
-
-    return Math.max(score, 0);
+    return Math.max(100 - penalty, 0);
   }
   breakdown(
   findings: ComplianceFinding[]

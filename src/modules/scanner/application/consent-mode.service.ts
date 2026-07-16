@@ -4,8 +4,13 @@ import type {
 
 export class ConsentModeService {
   detect(
-    inlineScripts: string[]
+    inlineScripts: string[],
+    liveConsentMode?: ConsentModeResult
   ): ConsentModeResult {
+    if (liveConsentMode && liveConsentMode.detected) {
+      return liveConsentMode;
+    }
+
     const source =
       inlineScripts.join("\n");
 

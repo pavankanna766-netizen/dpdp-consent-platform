@@ -19,6 +19,8 @@ export const privacyPolicyRule: ComplianceRule =
       return {
         id: "privacy-policy",
 
+        kind: "issue",
+
         severity: "medium",
 
         title:

@@ -13,7 +13,7 @@ export function PreferencesDialog() {
   const [marketing, setMarketing] =
     useState(false);
 
-  const [preferences, setPreferences] =
+  const [functional, setFunctional] =
     useState(false);
   return (
     <div className="rounded-2xl border bg-white p-6 shadow-xl">
@@ -44,10 +44,10 @@ export function PreferencesDialog() {
 />
 
         <CategoryToggle
-  title="Preferences"
+  title="Functional"
   description="Remember your settings."
-  checked={preferences}
-  onChange={setPreferences}
+  checked={functional}
+  onChange={setFunctional}
 />
       </div>
 
@@ -70,10 +70,10 @@ export function PreferencesDialog() {
     consentEngine.deny("marketing");
   }
 
-  if (preferences) {
-    consentEngine.grant("preferences");
+  if (functional) {
+    consentEngine.grant("functional");
   } else {
-    consentEngine.deny("preferences");
+    consentEngine.deny("functional");
   }
 }}
   className="rounded-lg bg-black px-4 py-2 text-white"

@@ -23,6 +23,7 @@ export async function createConsent(values: {
 }
 
 export async function withdrawConsent(
+  companyId: string,
   id: string
 ) {
   return supabaseAdmin
@@ -31,17 +32,21 @@ export async function withdrawConsent(
       status: "withdrawn",
       withdrawn_at: new Date().toISOString(),
     })
+    .eq("company_id", companyId)
     .eq("id", id)
+    .eq("status", "granted")
     .select()
     .single();
 }
 
 export async function getConsentById(
+  companyId: string,
   id: string
 ) {
   return supabaseAdmin
     .from("consents")
     .select("*")
+    .eq("company_id", companyId)
     .eq("id", id)
     .single();
 }
@@ -61,6 +66,23 @@ export async function listConsents(
 export async function findActiveConsent(
   companyId: string,
   templateId: string,
+  subjectIdentifier: string,
+  version: number
+) {
+  return supabaseAdmin
+    .from("consents")
+    .select("*")
+    .eq("company_id", companyId)
+    .eq("template_id", templateId)
+    .eq("subject_identifier", subjectIdentifier)
+    .eq("version", version)
+    .eq("status", "granted")
+    .maybeSingle();
+}
+
+export async function findLatestActiveConsent(
+  companyId: string,
+  templateId: string,
   subjectIdentifier: string
 ) {
   return supabaseAdmin
@@ -70,7 +92,21 @@ export async function findActiveConsent(
     .eq("template_id", templateId)
     .eq("subject_identifier", subjectIdentifier)
     .eq("status", "granted")
+    .order("version", { ascending: false })
+    .limit(1)
     .maybeSingle();
+}
+
+export async function listConsentHistory(
+  companyId: string,
+  subjectIdentifier: string
+) {
+  return supabaseAdmin
+    .from("consents")
+    .select("*")
+    .eq("company_id", companyId)
+    .eq("subject_identifier", subjectIdentifier)
+    .order("created_at", { ascending: false });
 }
 
 export async function updateConsent(

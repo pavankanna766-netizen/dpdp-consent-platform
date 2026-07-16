@@ -1,5 +1,7 @@
+import type { ConsentStatus } from "@/platform/contracts";
+
 type Props = {
-  status: string;
+  status: ConsentStatus;
 };
 
 export function ConsentStatusBadge({
