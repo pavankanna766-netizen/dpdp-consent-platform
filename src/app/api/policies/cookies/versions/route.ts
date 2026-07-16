@@ -1,42 +1,27 @@
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-
-import {
-  ensureCompany,
-} from "@/services/company.service";
-
-import {
-  cookiePolicyDocumentService,
-} from "@/modules/policies";
+import { ensureCompany } from "@/services/company.service";
+import { cookiePolicyDocumentService } from "@/modules/policies";
+import { handleHttpError } from "@/platform/http/error-handler";
+import { successResponse } from "@/platform/http/response";
+import { UnauthorizedError } from "@/platform/errors";
 
 export async function GET() {
-  const { userId } =
-    await auth();
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new UnauthorizedError();
 
-  if (!userId) {
-    return NextResponse.json(
-      {
-        error:
-          "Unauthorized",
-      },
-      {
-        status: 401,
-      }
-    );
-  }
-
-  const company =
-    await ensureCompany(
+    const company = await ensureCompany(
       userId,
       "My Company"
     );
 
-  const result =
-    await cookiePolicyDocumentService.versions(
-      company.id
-    );
+    const result =
+      await cookiePolicyDocumentService.versions(
+        company.id
+      );
 
-  return NextResponse.json(
-    result.data
-  );
+    return successResponse(result.data);
+  } catch (error) {
+    return handleHttpError(error);
+  }
 }

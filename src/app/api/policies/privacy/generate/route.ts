@@ -1,66 +1,51 @@
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-
-import {
-  ensureCompany,
-} from "@/services/company.service";
-
-import {
-  privacyDocumentService,
-} from "@/modules/policies";
+import { ensureCompany } from "@/services/company.service";
+import { privacyDocumentService } from "@/modules/policies";
+import { handleHttpError } from "@/platform/http/error-handler";
+import { successResponse } from "@/platform/http/response";
+import { UnauthorizedError } from "@/platform/errors";
 
 export async function POST() {
-  const { userId } =
-    await auth();
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new UnauthorizedError();
 
-  if (!userId) {
-    return NextResponse.json(
-      {
-        error:
-          "Unauthorized",
-      },
-      {
-        status: 401,
-      }
-    );
-  }
-
-  const company =
-    await ensureCompany(
+    const company = await ensureCompany(
       userId,
       "My Company"
     );
 
-  const result =
-    await privacyDocumentService.generate(
-      company.id,
-      {
-        companyName:
-          company.company_name,
+    const result =
+      await privacyDocumentService.generate(
+        company.id,
+        {
+          companyName:
+            company.company_name,
 
-        legalEntity:
-          company.company_name,
+          legalEntity:
+            company.company_name,
 
-        website:
-          company.website ?? "",
+          website:
+            company.website ?? "",
 
-        contactEmail: "",
+          contactEmail: "",
 
-        supportEmail: "",
+          supportEmail: "",
 
-        dpoEmail: "",
+          dpoEmail: "",
 
-        address: "",
+          address: "",
 
-        country:
-          company.country,
+          country:
+            company.country,
 
-        lastUpdated:
-          new Date().toISOString(),
-      }
-    );
+          lastUpdated:
+            new Date().toISOString(),
+        }
+      );
 
-  return NextResponse.json(
-    result.data
-  );
+    return successResponse(result.data);
+  } catch (error) {
+    return handleHttpError(error);
+  }
 }

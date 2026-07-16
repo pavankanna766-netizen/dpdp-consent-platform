@@ -1,22 +1,21 @@
-import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-
 import { ensureCompany } from "@/services/company.service";
+import { handleHttpError } from "@/platform/http/error-handler";
+import { successResponse } from "@/platform/http/response";
+import { UnauthorizedError } from "@/platform/errors";
 
 export async function GET() {
-  const { userId } = await auth();
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new UnauthorizedError();
 
-  if (!userId) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
+    const company = await ensureCompany(
+      userId,
+      "My Company"
     );
+
+    return successResponse(company);
+  } catch (error) {
+    return handleHttpError(error);
   }
-
-  const company = await ensureCompany(
-    userId,
-    "My Company"
-  );
-
-  return NextResponse.json(company);
 }
