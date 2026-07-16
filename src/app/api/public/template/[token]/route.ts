@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { z } from "zod";
 
 import { handleHttpError } from "@/platform/http/error-handler";
 
@@ -8,8 +9,19 @@ import {
 
 import {
   successResponse,
-  internalServerErrorResponse,
 } from "@/platform/http/response";
+
+import {
+  publicBannerOptions,
+  withPublicBannerHeaders,
+  limitPublicBannerRequest,
+} from "@/modules/banner/application/public-http";
+
+const TokenSchema = z.string().uuid("Invalid template token.");
+
+export async function OPTIONS() {
+  return publicBannerOptions();
+}
 
 export async function GET(
   request: NextRequest,
@@ -22,43 +34,51 @@ export async function GET(
   }
 ) {
   try {
-    const { token } =
-      await params;
+    await limitPublicBannerRequest(request, 120);
+
+    const { token } = await params;
+    const validToken = TokenSchema.parse(token);
 
     const template =
       await getPublishedTemplate(
-        token
+        validToken
       );
 
     if (!template) {
-      return Response.json(
-        {
-          success: false,
-          message:
-            "Template not found.",
-        },
-        {
-          status: 404,
-        }
+      return withPublicBannerHeaders(
+        Response.json(
+          {
+            success: false,
+            message:
+              "Template not found.",
+          },
+          {
+            status: 404,
+          }
+        )
       );
     }
 
-    return successResponse({
-  title: template.title,
+    return withPublicBannerHeaders(
+      successResponse({
+        title: template.title,
 
-  consentText:
-    template.consent_text,
+        consentText:
+          template.consent_text,
 
-  version: template.version,
+        version: template.version,
 
-  purposes: [
-    template.purpose,
-  ],
+        purposes: [
+          template.purpose,
+        ],
 
-  required:
-    template.is_required,
-});
+        required:
+          template.is_required,
+      })
+    );
   } catch (error) {
-  return handleHttpError(error);
-}
+    return withPublicBannerHeaders(
+      handleHttpError(error)
+    );
+  }
 }

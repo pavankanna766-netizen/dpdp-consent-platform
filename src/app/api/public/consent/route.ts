@@ -17,6 +17,14 @@ import {
 
 import { handleHttpError } from "@/platform/http/error-handler";
 import { withPlatform } from "@/platform/action";
+import {
+  publicBannerOptions,
+  withPublicBannerHeaders,
+} from "@/modules/banner/application/public-http";
+
+export async function OPTIONS() {
+  return publicBannerOptions();
+}
 
 export async function POST(
   request: NextRequest
@@ -27,7 +35,7 @@ export async function POST(
     const body =
       ConsentRequestSchema.parse(json);
 
-    return withPlatform(() => executePipeline({
+    const response = await withPlatform(() => executePipeline({
       request,
 
       body,
@@ -50,14 +58,20 @@ export async function POST(
         return successResponse(result);
       },
     }));
+
+    return withPublicBannerHeaders(response);
   } catch (error) {
     if (error instanceof ZodError) {
-      return validationErrorResponse(
-        "Invalid consent request.",
-        error.issues
+      return withPublicBannerHeaders(
+        validationErrorResponse(
+          "Invalid consent request.",
+          error.issues
+        )
       );
     }
 
-    return handleHttpError(error);
+    return withPublicBannerHeaders(
+      handleHttpError(error)
+    );
   }
 }
