@@ -29,16 +29,19 @@ export async function listRequests(
 }
 
 export async function getRequestById(
+  companyId: string,
   id: string
 ) {
   return supabaseAdmin
     .from("dsar_requests")
     .select("*")
     .eq("id", id)
+    .eq("company_id", companyId)
     .single();
 }
 
 export async function updateRequestStatus(
+  companyId: string,
   id: string,
   status: string
 ) {
@@ -60,6 +63,7 @@ export async function updateRequestStatus(
     .from("dsar_requests")
     .update(values)
     .eq("id", id)
+    .eq("company_id", companyId)
     .select()
     .single();
 }

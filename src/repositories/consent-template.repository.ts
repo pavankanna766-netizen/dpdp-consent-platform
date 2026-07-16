@@ -31,15 +31,17 @@ export async function getTemplates(companyId: string) {
     });
 }
 
-export async function getTemplateById(id: string) {
+export async function getTemplateById(companyId: string, id: string) {
   return supabaseAdmin
     .from("consent_templates")
     .select("*")
+    .eq("company_id", companyId)
     .eq("id", id)
     .single();
 }
 
 export async function updateTemplate(
+  companyId: string,
   id: string,
   values: {
     title: string;
@@ -57,12 +59,14 @@ export async function updateTemplate(
       ...values,
       updated_at: new Date().toISOString(),
     })
+    .eq("company_id", companyId)
     .eq("id", id)
     .select()
     .single();
 }
 
 export async function publishTemplate(
+  companyId: string,
   id: string,
   publicToken: string
 ) {
@@ -73,15 +77,17 @@ export async function publishTemplate(
       public_token: publicToken,
       updated_at: new Date().toISOString(),
     })
+    .eq("company_id", companyId)
     .eq("id", id)
     .select()
     .single();
 }
 
-export async function deleteTemplate(id: string) {
+export async function deleteTemplate(companyId: string, id: string) {
   return supabaseAdmin
     .from("consent_templates")
     .delete()
+    .eq("company_id", companyId)
     .eq("id", id);
 }
 

@@ -34,6 +34,7 @@ export const getLatestPrivacyPolicy = cache(async function (
 });
 
 export async function updatePrivacyPolicy(
+  companyId: string,
   id: string,
   values: Record<
     string,
@@ -48,6 +49,7 @@ export async function updatePrivacyPolicy(
         new Date().toISOString(),
     })
     .eq("id", id)
+    .eq("company_id", companyId)
     .select()
     .single();
 }
@@ -77,16 +79,19 @@ export const listPolicyVersions = cache(async function (
 });
 
 export const getPrivacyPolicyById = cache(async function (
+  companyId: string,
   id: string
 ) {
   return supabaseAdmin
     .from("privacy_policies")
     .select("*")
     .eq("id", id)
+    .eq("company_id", companyId)
     .single();
 });
 
 export async function archivePrivacyPolicy(
+  companyId: string,
   id: string
 ) {
   return supabaseAdmin
@@ -98,6 +103,7 @@ export async function archivePrivacyPolicy(
         new Date().toISOString(),
     })
     .eq("id", id)
+    .eq("company_id", companyId)
     .select()
     .single();
 }

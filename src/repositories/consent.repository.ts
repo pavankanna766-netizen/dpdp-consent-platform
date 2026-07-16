@@ -110,6 +110,7 @@ export async function listConsentHistory(
 }
 
 export async function updateConsent(
+  companyId: string,
   id: string,
   values: {
     metadata?: Record<
@@ -132,6 +133,7 @@ export async function updateConsent(
   return supabaseAdmin
     .from("consents")
     .update(values)
+    .eq("company_id", companyId)
     .eq("id", id)
     .select()
     .single();

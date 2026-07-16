@@ -29,6 +29,7 @@ export const latestCookiePolicy = cache(async function (
 });
 
 export function updateCookiePolicy(
+  companyId: string,
   id: string,
   values: Record<string, unknown>
 ) {
@@ -39,6 +40,7 @@ export function updateCookiePolicy(
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
+    .eq("company_id", companyId)
     .select()
     .single();
 }
@@ -67,11 +69,13 @@ export const getPublishedCookiePolicy = cache(async function (
 });
 
 export const getCookiePolicyById = cache(async function (
+  companyId: string,
   id: string
 ) {
   return supabaseAdmin
     .from("cookie_policies")
     .select("*")
     .eq("id", id)
+    .eq("company_id", companyId)
     .single();
 });

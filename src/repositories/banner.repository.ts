@@ -12,11 +12,13 @@ export async function createBanner(values: {
 }
 
 export async function getBanner(
+  companyId: string,
   id: string
 ) {
   return supabaseAdmin
     .from("cookie_banners")
     .select("*")
+    .eq("company_id", companyId)
     .eq("id", id)
     .single();
 }
@@ -34,6 +36,7 @@ export async function listCompanyBanners(
 }
 
 export async function updateBanner(
+  companyId: string,
   id: string,
   values: Record<
     string,
@@ -47,6 +50,7 @@ export async function updateBanner(
       updated_at:
         new Date().toISOString(),
     })
+    .eq("company_id", companyId)
     .eq("id", id)
     .select()
     .single();

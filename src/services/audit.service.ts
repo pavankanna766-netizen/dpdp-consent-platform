@@ -47,10 +47,11 @@ return {
 }
 
 export async function getAuditLog(
+  companyId: string,
   id: string
 ) {
   const { data, error } =
-    await getAuditLogById(id);
+    await getAuditLogById(companyId, id);
 
   if (error) throw error;
 

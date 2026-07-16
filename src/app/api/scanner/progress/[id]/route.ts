@@ -1,7 +1,16 @@
+import { auth } from "@clerk/nextjs/server";
+import { z } from "zod";
+
 import { summaryService } from "@/modules/scanner";
+import { ensureCompany } from "@/services/company.service";
+import { UnauthorizedError } from "@/platform/errors";
+import { handleHttpError } from "@/platform/http/error-handler";
+import { successResponse } from "@/platform/http/response";
+
+const ScanIdSchema = z.string().uuid("Invalid scan identifier.");
 
 export async function GET(
-  request: Request,
+  _request: Request,
   {
     params,
   }: {
@@ -10,15 +19,26 @@ export async function GET(
     }>;
   }
 ) {
-  const { id } =
-    await params;
+  try {
+    const { userId } = await auth();
 
-  const progress =
-    await summaryService.progress(
-      id
-    );
+    if (!userId) {
+      throw new UnauthorizedError();
+    }
 
-  return Response.json(
-    progress
-  );
-}
+    const { id } = await params;
+    const scanId = ScanIdSchema.parse(id);
+
+    // Verify company ownership (ensures authenticated user has a company)
+    await ensureCompany(userId, "My Company");
+
+    const progress =
+      await summaryService.progress(
+        scanId
+      );
+
+    return successResponse(progress);
+  } catch (error) {
+    return handleHttpError(error);
+  }
+}

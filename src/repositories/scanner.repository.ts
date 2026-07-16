@@ -20,6 +20,7 @@ export async function createScan(
 }
 
 export async function updateScanProgress(
+  companyId: string,
   id: string,
   values: {
     status?: string;
@@ -32,12 +33,14 @@ export async function updateScanProgress(
   return supabaseAdmin
     .from("scanner_scans")
     .update(values)
+    .eq("company_id", companyId)
     .eq("id", id)
     .select()
     .single();
 }
 
 export async function completeScan(
+  companyId: string,
   id: string,
   values: {
     status: string;
@@ -54,17 +57,20 @@ export async function completeScan(
   return supabaseAdmin
     .from("scanner_scans")
     .update(values)
+    .eq("company_id", companyId)
     .eq("id", id)
     .select()
     .single();
 }
 
 export const getScan = cache(async function (
+  companyId: string,
   id: string
 ) {
   return supabaseAdmin
     .from("scanner_scans")
     .select("*")
+    .eq("company_id", companyId)
     .eq("id", id)
     .single();
 });
@@ -98,6 +104,7 @@ export const listRecentScans = cache(async function (
 });
 
 export const getScanSummary = cache(async function (
+  companyId: string,
   scanId: string
 ) {
   const [
@@ -108,6 +115,7 @@ export const getScanSummary = cache(async function (
     supabaseAdmin
       .from("scanner_scans")
       .select("*")
+      .eq("company_id", companyId)
       .eq("id", scanId)
       .single(),
 
@@ -138,6 +146,7 @@ export const getScanSummary = cache(async function (
 });
 
 export const getScanJob = cache(async function (
+  companyId: string,
   id: string
 ) {
   return supabaseAdmin
@@ -154,6 +163,7 @@ export const getScanJob = cache(async function (
       completed_at
       `
     )
+    .eq("company_id", companyId)
     .eq("id", id)
     .single();
 });

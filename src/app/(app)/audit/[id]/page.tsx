@@ -1,9 +1,11 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 
 import { PageHeader } from "@/components/dashboard/page-header";
 import { EventBadge } from "@/components/audit/event-badge";
 
 import { getAuditLog } from "@/services/audit.service";
+import { ensureCompany } from "@/services/company.service";
 
 import { JsonViewer } from "@/components/json/json-viewer";
 
@@ -16,12 +18,16 @@ type Props = {
 export default async function AuditEventPage({
   params,
 }: Props) {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const company = await ensureCompany(userId, "My Company");
   const { id } = await params;
 
   let log;
 
   try {
-    log = await getAuditLog(id);
+    log = await getAuditLog(company.id, id);
   } catch {
     notFound();
   }
