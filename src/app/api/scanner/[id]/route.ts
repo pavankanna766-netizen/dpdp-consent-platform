@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { ensureCompany } from "@/services/company.service";
 import { summaryService } from "@/modules/scanner";
+import { handleHttpError } from "@/platform/http/error-handler";
 
 export async function GET(
   request: NextRequest,
@@ -32,8 +33,7 @@ export async function GET(
     }
 
     return NextResponse.json(summary);
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "Failed to load scan summary";
-    return NextResponse.json({ error: msg }, { status: 500 });
+  } catch (error) {
+    return handleHttpError(error);
   }
 }

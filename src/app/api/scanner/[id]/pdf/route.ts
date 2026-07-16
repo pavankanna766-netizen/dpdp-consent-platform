@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { ensureCompany } from "@/services/company.service";
 import { pdfService } from "@/modules/report";
 import { getScan } from "@/repositories/scanner.repository";
+import { handleHttpError } from "@/platform/http/error-handler";
 
 export async function GET(
   request: Request,
@@ -45,8 +46,7 @@ export async function GET(
         },
       }
     );
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "Failed to generate PDF report";
-    return NextResponse.json({ error: msg }, { status: 500 });
+  } catch (error) {
+    return handleHttpError(error);
   }
 }

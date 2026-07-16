@@ -7,6 +7,7 @@ import {
   ScanOrchestrator,
   DefaultScanPipeline,
 } from "@/modules/scanner";
+import { handleHttpError } from "@/platform/http/error-handler";
 
 const pipeline = new DefaultScanPipeline();
 const orchestrator = new ScanOrchestrator(pipeline);
@@ -82,19 +83,6 @@ export async function POST(
       );
     }
 
-    console.error("Scanner request failed", error);
-
-    return Response.json(
-      {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unknown error",
-      },
-      {
-        status: 500,
-      }
-    );
+    return handleHttpError(error);
   }
 }

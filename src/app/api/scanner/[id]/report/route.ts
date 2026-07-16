@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { ensureCompany } from "@/services/company.service";
 import { reportService } from "@/modules/scanner";
 import { getScan } from "@/repositories/scanner.repository";
+import { handleHttpError } from "@/platform/http/error-handler";
 
 export async function GET(
   request: Request,
@@ -34,8 +35,7 @@ export async function GET(
 
     const report = await reportService.generate(company.id, id);
     return NextResponse.json(report);
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "Failed to generate scan report";
-    return NextResponse.json({ error: msg }, { status: 500 });
+  } catch (error) {
+    return handleHttpError(error);
   }
 }

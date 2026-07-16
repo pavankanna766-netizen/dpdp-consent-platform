@@ -1,26 +1,24 @@
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { z } from "zod";
 import { ensureCompany } from "@/services/company.service";
 import { cookiePolicyDocumentService } from "@/modules/policies";
+import { handleHttpError } from "@/platform/http/error-handler";
+import { successResponse } from "@/platform/http/response";
+import { UnauthorizedError } from "@/platform/errors";
+
+const PublishSchema = z.object({ id: z.string().uuid() });
 
 export async function POST(request: Request) {
   try {
     const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    if (!userId) throw new UnauthorizedError();
 
-    const { id } = await request.json();
-    if (!id || typeof id !== "string") {
-      return NextResponse.json({ error: "Invalid request payload" }, { status: 400 });
-    }
-
+    const body = PublishSchema.parse(await request.json());
     const company = await ensureCompany(userId, "My Company");
-    const result = await cookiePolicyDocumentService.publish(company.id, id);
+    const result = await cookiePolicyDocumentService.publish(company.id, body.id);
 
-    return NextResponse.json(result.data);
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "Failed to publish policy";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return successResponse(result.data);
+  } catch (error) {
+    return handleHttpError(error);
   }
 }
