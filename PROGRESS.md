@@ -59,4 +59,14 @@ This document tracks all features, schema migrations, and bug fixes applied to P
 *   **What changed:** Audited the entire codebase using Turbopack production compilation (`npm run build`). Corrected all TypeScript type signatures, passed missing parameters on database queries, escaped raw HTML tags in JS text contexts, and created the missing `Textarea` UI component.
 *   **Why:** Guarantees compile-time health and absolute stability for public hosting environments (e.g. Vercel).
 
+### 13. Live Razorpay Billing Integration
+*   **What changed:**
+    1. Replaced the simulated modal with the **standard Razorpay Checkout SDK** inside the `/billing` page, loading dynamically.
+    2. Implemented the POST `/api/billing/checkout` endpoint to dynamically verify plans and call Razorpay's `orders.create` API using environment credentials.
+    3. Implemented the POST `/api/billing/verify` endpoint performing cryptographic signature verification (HMAC SHA-256) and handling idempotency checks via unique Postgres constraints on `razorpay_payment_id` logs.
+    4. Implemented the POST `/api/billing/webhook` endpoint with HMAC signature checking to automatically sync subscription plans asynchronously on callback receipts.
+    5. Configured pricing tiers: Free Sandbox (₹0), Startup Plan (₹3,500/month), Growing Business Plan (₹8,500/month), and quote-based Enterprise Plan.
+*   **Why:** Replaces all mock elements with a production-ready, highly secure checkout workflow for public deployment.
+
+
 
