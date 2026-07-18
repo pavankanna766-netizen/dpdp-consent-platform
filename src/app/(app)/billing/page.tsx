@@ -1,23 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { CreditCard, Check, Shield, Zap, Sparkles, Building2, Landmark, QrCode } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CreditCard, Check, Shield, Zap, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 
 const PLANS = [
   {
+    id: "free",
+    name: "Free Sandbox",
+    price: "₹0",
+    period: "forever",
+    description: "Ideal for local dev environments and testing scopes.",
+    features: [
+      "1 Sandbox Website Scan",
+      "Draft Consent Preferences",
+      "Manual Inventory Logs",
+      "100 Consent Records / mo",
+    ],
+    color: "slate",
+    icon: Shield,
+  },
+  {
     id: "starter",
-    name: "Starter",
-    price: "₹2,999",
+    name: "Startup Plan",
+    price: "₹3,500",
     period: "month",
     description: "Ideal for small Indian startups and micro-enterprises.",
     features: [
-      "1 Website Integration",
-      "Basic Consent Banner",
+      "1 Production Website Integration",
+      "Standard Cookie Banner Notice",
       "Privacy Policy Generator",
-      "1,000 Consent Records / mo",
+      "5,000 Consent Records / mo",
       "Standard Email Support",
     ],
     color: "indigo",
@@ -25,65 +38,149 @@ const PLANS = [
   },
   {
     id: "growth",
-    name: "Growth",
-    price: "₹7,999",
+    name: "Growing Business Plan",
+    price: "₹8,500",
     period: "month",
     description: "Perfect for growing digital-first Indian businesses.",
     features: [
-      "5 Website Integrations",
-      "Advanced Banner Customization",
-      "Automated Privacy Scanner",
-      "DSAR & Audit Logs Access",
-      "10,000 Consent Records / mo",
-      "Priority Support (24h SLA)",
+      "3 Website Integrations",
+      "Bilingual Consent Notice (English/Hindi)",
+      "Compliance Audits & Weekly Scans",
+      "25,000 Consent Records / mo",
+      "Priority Email & Chat Support",
     ],
     color: "violet",
     icon: Zap,
-    popular: true,
   },
   {
     id: "enterprise",
-    name: "Enterprise",
-    price: "₹14,999",
-    period: "month",
-    description: "For Significant Data Fiduciaries requiring complete compliance.",
+    name: "Enterprise Plan",
+    price: "Custom",
+    period: "year",
+    description: "For significant data fiduciaries with massive scaling requirements.",
     features: [
       "Unlimited Website Integrations",
-      "Full API & Embeddable SDK Access",
-      "Custom Branding & Styling",
-      "Dedicated DPO Support Channel",
-      "Unlimited Consent Records / mo",
-      "Independent Audit Ledger Exports",
+      "All Regional Languages support",
+      "Full API & Webhook access",
+      "SLA Incident Response Manager",
+      "Dedicated Technical Account Team",
     ],
-    color: "purple",
+    color: "amber",
     icon: Sparkles,
   },
 ];
 
 export default function BillingPage() {
-  const [currentPlan, setCurrentPlan] = useState("starter");
-  const [selectedPlan, setSelectedPlan] = useState<typeof PLANS[0] | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [currentPlan, setCurrentPlan] = useState("free");
+  const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [upiId, setUpiId] = useState("user@okaxis");
 
-  const handleCheckout = (plan: typeof PLANS[0]) => {
-    if (plan.id === currentPlan) return;
-    setSelectedPlan(plan);
-    setIsSuccess(false);
-  };
+  useEffect(() => {
+    // 1. Dynamically load the standard Razorpay checkout script
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
 
-  const handlePayment = () => {
+    // 2. Fetch the active company's plan status from Clerk/Supabase session
+    fetch("/api/company/current")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.billing_status) {
+          setCurrentPlan(data.billing_status);
+        } else if (data.plan_id) {
+          setCurrentPlan(data.plan_id);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handleCheckout = async (plan: typeof PLANS[0]) => {
+    if (plan.id === "free" || plan.id === currentPlan) return;
+
+    if (plan.id === "enterprise") {
+      alert("Enterprise tier requires a custom service contract. Please contact our compliance sales team at sales@privystack.in.");
+      return;
+    }
+
     setIsProcessing(true);
-    setTimeout(() => {
+
+    try {
+      // 1. Request order details from the backend checkout API
+      const checkoutRes = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ planId: plan.id }),
+      });
+
+      const checkoutData = await checkoutRes.json();
+      if (checkoutData.error) {
+        alert(checkoutData.error);
+        setIsProcessing(false);
+        return;
+      }
+
+      // 2. Open the standard Razorpay Checkout window
+      const options = {
+        key: checkoutData.key,
+        amount: checkoutData.amount,
+        currency: checkoutData.currency,
+        name: "PrivyStack Compliance",
+        description: `Upgrade to ${plan.name}`,
+        order_id: checkoutData.orderId,
+        handler: async function (response: any) {
+          setIsProcessing(true);
+          try {
+            // 3. Cryptographically verify signature on the server
+            const verifyRes = await fetch("/api/billing/verify", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                planId: plan.id,
+              }),
+            });
+
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              alert("Payment completed and verified successfully! Refreshing status.");
+              window.location.reload();
+            } else {
+              alert(`Payment verification failed: ${verifyData.error}`);
+            }
+          } catch (err: any) {
+            alert(`Failed to verify payment signature: ${err.message}`);
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+        prefill: {
+          name: checkoutData.companyName || "PrivyStack Org",
+          email: "billing@privystack.in",
+        },
+        theme: {
+          color: "#4f46e5",
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      alert(`Checkout failed: ${err.message}`);
+    } finally {
       setIsProcessing(false);
-      setIsSuccess(true);
-      setCurrentPlan(selectedPlan!.id);
-      setTimeout(() => {
-        setSelectedPlan(null);
-      }, 1500);
-    }, 2000);
+    }
   };
 
   return (
@@ -91,7 +188,7 @@ export default function BillingPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">💳 Subscription & Billing</h1>
         <p className="mt-1.5 text-sm text-gray-500">
-          Manage your PrivyStack compliance plan, billing history, and Razorpay subscription.
+          Manage your PrivyStack compliance plan, billing history, and active Razorpay subscriptions.
         </p>
       </div>
 
@@ -99,24 +196,26 @@ export default function BillingPage() {
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div>
           <span className="text-xs font-semibold uppercase text-indigo-600 tracking-wider">Current Account Level</span>
-          <h2 className="text-2xl font-bold text-gray-900 mt-1 capitalize">{currentPlan} Compliance Tier</h2>
-          <p className="text-xs text-gray-500 mt-1">Next renewal date: August 18, 2026</p>
+          <h2 className="text-2xl font-bold text-gray-900 mt-1 capitalize">
+            {loading ? "Loading..." : `${currentPlan} Compliance Tier`}
+          </h2>
+          <p className="text-xs text-gray-500 mt-1">DPDP Consent Ledger Active status.</p>
         </div>
         <div className="flex gap-4">
           <div className="text-right">
-            <span className="text-xs text-gray-500">Consent Usage</span>
-            <div className="text-lg font-bold text-gray-900 mt-0.5">342 / 1,000</div>
+            <span className="text-xs text-gray-500">Billing Provider</span>
+            <div className="text-lg font-bold text-gray-900 mt-0.5">Razorpay Secure</div>
           </div>
           <div className="h-10 w-px bg-gray-200"></div>
           <div className="text-right">
-            <span className="text-xs text-gray-500">Monitored Domains</span>
-            <div className="text-lg font-bold text-gray-900 mt-0.5">1 / 1</div>
+            <span className="text-xs text-gray-500">Currency</span>
+            <div className="text-lg font-bold text-gray-900 mt-0.5">INR (₹)</div>
           </div>
         </div>
       </div>
 
       {/* Plans Grid */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-4">
         {PLANS.map((plan) => {
           const PlanIcon = plan.icon;
           const isCurrent = plan.id === currentPlan;
@@ -124,18 +223,12 @@ export default function BillingPage() {
             <div
               key={plan.id}
               className={`relative rounded-2xl border bg-white p-6 shadow-sm flex flex-col justify-between ${
-                plan.popular ? "border-indigo-600 ring-1 ring-indigo-600" : "border-gray-200"
+                isCurrent ? "border-indigo-600 ring-1 ring-indigo-600" : "border-gray-200"
               }`}
             >
-              {plan.popular && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-3 py-1 text-[10px] font-bold text-white uppercase tracking-wider">
-                  Most Popular
-                </span>
-              )}
-
               <div>
                 <div className="flex items-center gap-3">
-                  <div className={`rounded-lg bg-${plan.color}-50 p-2.5 text-${plan.color}-600`}>
+                  <div className={`rounded-lg p-2.5 bg-slate-50 text-indigo-600`}>
                     <PlanIcon className="h-6 w-6" />
                   </div>
                   <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
@@ -160,13 +253,13 @@ export default function BillingPage() {
 
               <div className="mt-8 border-t pt-5">
                 <Button
-                  className={`w-full ${
+                  className={`w-full font-semibold ${
                     isCurrent
                       ? "bg-slate-100 text-slate-500 hover:bg-slate-100 cursor-not-allowed"
                       : "bg-indigo-600 text-white hover:bg-indigo-700"
                   }`}
                   onClick={() => handleCheckout(plan)}
-                  disabled={isCurrent}
+                  disabled={isCurrent || isProcessing}
                 >
                   {isCurrent ? "Current Active Plan" : `Upgrade to ${plan.name}`}
                 </Button>
@@ -175,138 +268,6 @@ export default function BillingPage() {
           );
         })}
       </div>
-
-      {/* Razorpay Simulation Modal */}
-      {selectedPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md overflow-hidden rounded-2xl border border-gray-150 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            {/* Razorpay Header */}
-            <div className="bg-[#17252a] px-6 py-4 flex items-center justify-between text-white border-b border-gray-800">
-              <div className="flex items-center gap-2">
-                <div className="h-7 w-7 rounded bg-indigo-500 flex items-center justify-center font-bold text-white text-xs">P</div>
-                <div>
-                  <h4 className="text-sm font-semibold tracking-tight">PrivyStack Payment</h4>
-                  <p className="text-[10px] text-gray-400">Order ID: pay_ps_sub_${Date.now().toString().slice(-6)}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-indigo-300">{selectedPlan.price}</p>
-                <p className="text-[9px] text-gray-400">Razorpay Secure</p>
-              </div>
-            </div>
-
-            {/* Payment Body */}
-            {isSuccess ? (
-              <div className="p-8 text-center flex flex-col items-center justify-center gap-3">
-                <Check className="h-14 w-14 text-green-500 bg-green-50 rounded-full p-2.5 animate-bounce" />
-                <h3 className="text-lg font-bold text-gray-900">Subscription Upgraded!</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">
-                  Your payment of **{selectedPlan.price}** has been processed successfully through Razorpay. Your account limits have been updated.
-                </p>
-              </div>
-            ) : (
-              <div className="p-6 space-y-6">
-                <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Select Payment Method</label>
-                  <div className="mt-2 grid grid-cols-3 gap-2">
-                    <button
-                      onClick={() => setPaymentMethod("card")}
-                      className={`flex flex-col items-center justify-center gap-1.5 rounded-lg border p-3 text-center transition-all ${
-                        paymentMethod === "card" ? "border-indigo-600 bg-indigo-50/20 text-indigo-600" : "border-gray-200 hover:bg-slate-50"
-                      }`}
-                    >
-                      <CreditCard className="h-5 w-5" />
-                      <span className="text-[10px] font-semibold">Card</span>
-                    </button>
-                    <button
-                      onClick={() => setPaymentMethod("upi")}
-                      className={`flex flex-col items-center justify-center gap-1.5 rounded-lg border p-3 text-center transition-all ${
-                        paymentMethod === "upi" ? "border-indigo-600 bg-indigo-50/20 text-indigo-600" : "border-gray-200 hover:bg-slate-50"
-                      }`}
-                    >
-                      <QrCode className="h-5 w-5" />
-                      <span className="text-[10px] font-semibold">UPI / QR</span>
-                    </button>
-                    <button
-                      onClick={() => setPaymentMethod("netbanking")}
-                      className={`flex flex-col items-center justify-center gap-1.5 rounded-lg border p-3 text-center transition-all ${
-                        paymentMethod === "netbanking" ? "border-indigo-600 bg-indigo-50/20 text-indigo-600" : "border-gray-200 hover:bg-slate-50"
-                      }`}
-                    >
-                      <Landmark className="h-5 w-5" />
-                      <span className="text-[10px] font-semibold">Netbanking</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="border-t pt-4">
-                  {paymentMethod === "card" && (
-                    <div className="space-y-3">
-                      <div>
-                        <Label className="text-[10px] font-bold uppercase text-gray-400">Card Number</Label>
-                        <Input type="text" placeholder="4111 2222 3333 4444" className="mt-1 font-mono text-sm" />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Label className="text-[10px] font-bold uppercase text-gray-400">Expiry</Label>
-                          <Input type="text" placeholder="MM / YY" className="mt-1 font-mono text-sm" />
-                        </div>
-                        <div>
-                          <Label className="text-[10px] font-bold uppercase text-gray-400">CVV</Label>
-                          <Input type="password" placeholder="***" className="mt-1 font-mono text-sm" />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {paymentMethod === "upi" && (
-                    <div className="space-y-3">
-                      <div>
-                        <Label className="text-[10px] font-bold uppercase text-gray-400">UPI ID / VPA</Label>
-                        <Input
-                          type="text"
-                          value={upiId}
-                          onChange={(e) => setUpiId(e.target.value)}
-                          className="mt-1 font-mono text-sm"
-                        />
-                      </div>
-                      <p className="text-[10px] text-gray-400 leading-relaxed">
-                        A collect request will be sent to this VPA. Open your UPI application to authorize the transaction.
-                      </p>
-                    </div>
-                  )}
-
-                  {paymentMethod === "netbanking" && (
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-bold uppercase text-gray-400">Popular Indian Banks</Label>
-                      <select className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none">
-                        <option>State Bank of India (SBI)</option>
-                        <option>HDFC Bank</option>
-                        <option>ICICI Bank</option>
-                        <option>Axis Bank</option>
-                        <option>Kotak Mahindra Bank</option>
-                      </select>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex gap-3 border-t pt-5">
-                  <Button variant="outline" className="flex-1" onClick={() => setSelectedPlan(null)}>
-                    Cancel
-                  </Button>
-                  <Button
-                    className="flex-1 bg-[#17252a] hover:bg-slate-800 text-white flex items-center justify-center gap-1.5"
-                    onClick={handlePayment}
-                    disabled={isProcessing}
-                  >
-                    {isProcessing ? "Processing..." : `Pay ${selectedPlan.price}`}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
