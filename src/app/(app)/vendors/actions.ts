@@ -35,6 +35,7 @@ export async function updateVendorAction(
     agreement_clears_safeguard_bar: boolean;
     renewal_status: string;
     contract_expiry?: string;
+    unconfirmed?: boolean;
   }>
 ) {
   return withPlatform(async () => {

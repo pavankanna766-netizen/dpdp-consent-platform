@@ -53,7 +53,8 @@ export async function deleteTemplateAction(
       throw new UnauthorizedError();
     }
 
-    await removeTemplate(templateId);
+    const company = await ensureCompany(userId, "My Company");
+    await removeTemplate(company.id, templateId);
 
     return {
       success: true,
@@ -71,7 +72,8 @@ export async function publishTemplateAction(
       throw new UnauthorizedError();
     }
 
-    await publishTemplateService(templateId);
+    const company = await ensureCompany(userId, "My Company");
+    await publishTemplateService(company.id, templateId);
 
     return {
       success: true,
@@ -90,7 +92,8 @@ export async function updateTemplateAction(
       throw new UnauthorizedError();
     }
 
-    await editTemplate(templateId, {
+    const company = await ensureCompany(userId, "My Company");
+    await editTemplate(company.id, templateId, {
       ...values,
     });
 

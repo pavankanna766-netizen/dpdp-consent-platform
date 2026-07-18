@@ -118,7 +118,7 @@ export default function DevDocsPage() {
               Quick Integration
             </h3>
             <p className="text-xs text-gray-500 leading-relaxed">
-              To load the DPDP cookie consent banner on your website, copy the script tag from the Templates editor and paste it in the `<head>` of your website.
+              To load the DPDP cookie consent banner on your website, copy the script tag from the Templates editor and paste it in the <code>&lt;head&gt;</code> of your website.
             </p>
             <div className="text-xs text-gray-700 space-y-2.5 border-t pt-3">
               <span className="font-semibold text-gray-900">Supported Headers:</span>

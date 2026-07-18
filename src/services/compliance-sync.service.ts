@@ -13,21 +13,21 @@ export async function autoPopulateRegistry(
   const { data: existingInventory = [] } = await listInventoryItems(companyId);
 
   for (const detection of detections) {
-    const providerName = detection.provider || detection.id;
+    const providerName = detection.tracker.provider || detection.tracker.id;
     const providerLower = providerName.toLowerCase();
 
     // Mapping detection category to data categories/types
     let dataCategories = ["Usage Data", "Device Information"];
     let dataTypes = ["IP Address", "Browser User Agent", "Unique Cookie ID"];
-    let purpose = detection.description || "Web service tracking.";
+    let purpose = detection.tracker.description || "Web service tracking.";
 
-    if (detection.category === "marketing") {
+    if (detection.tracker.category === "marketing") {
       dataCategories = ["Advertising Preferences", "Online Identifiers"];
       dataTypes = ["Ad Interaction ID", "Targeting Cookie", "Pixel ID"];
-    } else if (detection.category === "payments") {
+    } else if (detection.tracker.category === "payments") {
       dataCategories = ["Transaction details", "Billing information"];
       dataTypes = ["Card network metadata", "Tokenized transaction ID"];
-    } else if (detection.category === "support") {
+    } else if (detection.tracker.category === "support") {
       dataCategories = ["Customer communication logs", "Contact info"];
       dataTypes = ["Support chat history", "Email/Mobile ticket ID"];
     }
@@ -51,7 +51,7 @@ export async function autoPopulateRegistry(
     }
 
     // B. Ensure Data Inventory item exists
-    const categoryName = detection.category.charAt(0).toUpperCase() + detection.category.slice(1) + " Tracker";
+    const categoryName = detection.tracker.category.charAt(0).toUpperCase() + detection.tracker.category.slice(1) + " Tracker";
     let inventoryItem = existingInventory?.find(
       (i) => i.category.toLowerCase() === categoryName.toLowerCase() &&
              (i.shared_with_processor || "").toLowerCase() === providerLower
@@ -64,7 +64,7 @@ export async function autoPopulateRegistry(
         purpose: purpose,
         data_types: dataTypes,
         shared_with_processor: providerName,
-        legal_basis: detection.requiresConsent ? "Consent (Section 6)" : "Legitimate Use",
+        legal_basis: detection.tracker.requiresConsent ? "Consent (Section 6)" : "Legitimate Use",
         retention_period: "Until withdrawn",
         unconfirmed: true, // Scanner auto-discoveries start unconfirmed
       });

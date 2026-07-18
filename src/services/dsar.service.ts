@@ -46,10 +46,11 @@ export async function getCompanyRequests(
 }
 
 export async function getRequest(
+  companyId: string,
   id: string
 ) {
   const { data, error } =
-    await getRequestById(id);
+    await getRequestById(companyId, id);
 
   if (error) throw error;
 
@@ -57,10 +58,12 @@ export async function getRequest(
 }
 
 export async function completeRequest(
+  companyId: string,
   id: string
 ) {
   const { data, error } =
     await updateRequestStatus(
+      companyId,
       id,
       "completed"
     );

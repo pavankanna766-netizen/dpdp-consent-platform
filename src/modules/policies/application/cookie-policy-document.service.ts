@@ -58,7 +58,7 @@ export class CookiePolicyDocumentService {
     companyId: string,
     id: string
   ) {
-    const { data, error } = await getCookiePolicyById(id);
+    const { data, error } = await getCookiePolicyById(companyId, id);
     if (error || !data || data.company_id !== companyId) {
       throw new Error("Policy not found or unauthorized");
     }
@@ -68,6 +68,7 @@ export class CookiePolicyDocumentService {
     }
 
     return updateCookiePolicy(
+      companyId,
       id,
       {
         status: "published",

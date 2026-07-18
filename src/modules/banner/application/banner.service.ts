@@ -28,15 +28,15 @@ export class BannerService {
   }
 
   get(
+    companyId: string,
     id: string
   ) {
-    return getBanner(id);
+    return getBanner(companyId, id);
   }
 
   getForCompany(companyId: string, id: string) {
     return getCompanyBanner(companyId, id);
   }
-
   list(
     companyId: string
   ) {
@@ -60,7 +60,7 @@ export class BannerService {
     const { data: banner, error } = await getCompanyBanner(companyId, id);
     if (error) throw error;
     if (!banner) throw new NotFoundError("Cookie banner");
-    const result = await updateBanner(id, {
+    const result = await updateBanner(companyId, id, {
       status: "published",
       embed_token: banner.embed_token ?? crypto.randomUUID(),
       published_at:
@@ -85,6 +85,7 @@ export class BannerService {
     if (error) throw error;
     if (!banner) throw new NotFoundError("Cookie banner");
     const result = await updateBanner(
+      companyId,
       id,
       values
     );

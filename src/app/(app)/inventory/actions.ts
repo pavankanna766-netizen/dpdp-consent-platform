@@ -37,6 +37,7 @@ export async function updateInventoryItemAction(
     shared_with_processor?: string;
     legal_basis: string;
     retention_period: string;
+    unconfirmed?: boolean;
   }>
 ) {
   return withPlatform(async () => {

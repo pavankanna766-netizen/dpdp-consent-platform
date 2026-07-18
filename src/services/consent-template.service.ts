@@ -61,10 +61,11 @@ export async function listTemplates(
 }
 
 export async function getTemplate(
+  companyId: string,
   id: string
 ) {
   const { data, error } =
-    await getTemplateById(id);
+    await getTemplateById(companyId, id);
 
   if (error) throw error;
 
@@ -72,6 +73,7 @@ export async function getTemplate(
 }
 
 export async function editTemplate(
+  companyId: string,
   id: string,
   values: {
     title: string;
@@ -84,7 +86,7 @@ export async function editTemplate(
   }
 ) {
   const { data, error } =
-    await updateTemplate(id, values);
+    await updateTemplate(companyId, id, values);
 
   if (error) throw error;
 
@@ -101,9 +103,10 @@ export async function editTemplate(
 }
 
 export async function publishTemplateService(
+  companyId: string,
   id: string
 ) {
-  const template = await getTemplate(id);
+  const template = await getTemplate(companyId, id);
 
   if (!template) {
     throw new NotFoundError(
@@ -117,6 +120,7 @@ export async function publishTemplateService(
 
   const { data, error } =
     await publishTemplate(
+      companyId,
       id,
       publicToken
     );
@@ -137,10 +141,11 @@ export async function publishTemplateService(
 }
 
 export async function removeTemplate(
+  companyId: string,
   id: string
 ) {
   const { error } =
-    await deleteTemplate(id);
+    await deleteTemplate(companyId, id);
 
   if (error) throw error;
 

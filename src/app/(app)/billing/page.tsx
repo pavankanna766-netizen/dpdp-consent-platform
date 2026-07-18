@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { CreditCard, Check, Shield, Zap, Sparkles, Building2, Landmark, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 const PLANS = [
   {

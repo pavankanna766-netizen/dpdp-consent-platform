@@ -23,7 +23,7 @@ export async function runLlmGapAnalysis(
     ${cookiePolicy?.html_content || "No cookie policy found."}
   `;
 
-  const observedTrackers = detections.map((d) => d.provider || d.id);
+  const observedTrackers = detections.map((d) => d.tracker.provider || d.tracker.id);
   const observedCookies = cookies.map((c) => c.name);
 
   const apiKey = process.env.GEMINI_API_KEY;

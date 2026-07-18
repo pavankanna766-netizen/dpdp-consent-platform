@@ -1,4 +1,6 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
+import { ensureCompany } from "@/services/company.service";
 
 import { PageHeader } from "@/components/dashboard/page-header";
 import { RequestStatusBadge } from "@/components/requests/request-status-badge";
@@ -16,11 +18,14 @@ export default async function RequestDetailsPage({
   params,
 }: Props) {
   const { id } = await params;
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
 
+  const company = await ensureCompany(userId, "My Company");
   let request;
 
   try {
-    request = await getRequest(id);
+    request = await getRequest(company.id, id);
   } catch {
     notFound();
   }

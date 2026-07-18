@@ -44,53 +44,57 @@ export class PrivacyDocumentService {
   );
 }
 
-archive(
-  id: string
-) {
-  return archivePrivacyPolicy(
-    id
-  );
-}
-
-async restore(
-  companyId: string,
-  id: string
-) {
-  const {
-    data,
-    error,
-  } =
-    await getPrivacyPolicyById(
+  archive(
+    companyId: string,
+    id: string
+  ) {
+    return archivePrivacyPolicy(
+      companyId,
       id
     );
-
-  if (
-    error ||
-    !data ||
-    data.company_id !== companyId
-  ) {
-    throw error ??
-      new Error(
-        "Policy not found or unauthorized"
-      );
   }
 
-  return updatePrivacyPolicy(
-    id,
-    {
-      archived: false,
-      status: "published",
-      published_at:
-        new Date().toISOString(),
+  async restore(
+    companyId: string,
+    id: string
+  ) {
+    const {
+      data,
+      error,
+    } =
+      await getPrivacyPolicyById(
+        companyId,
+        id
+      );
+
+    if (
+      error ||
+      !data ||
+      data.company_id !== companyId
+    ) {
+      throw error ??
+        new Error(
+          "Policy not found or unauthorized"
+        );
     }
-  );
-}
+
+    return updatePrivacyPolicy(
+      companyId,
+      id,
+      {
+        archived: false,
+        status: "published",
+        published_at:
+          new Date().toISOString(),
+      }
+    );
+  }
 
   async publish(
     companyId: string,
     id: string
   ) {
-    const { data, error } = await getPrivacyPolicyById(id);
+    const { data, error } = await getPrivacyPolicyById(companyId, id);
     if (error || !data || data.company_id !== companyId) {
       throw new Error("Policy not found or unauthorized");
     }
@@ -100,6 +104,7 @@ async restore(
     }
 
     return updatePrivacyPolicy(
+      companyId,
       id,
       {
         status: "published",

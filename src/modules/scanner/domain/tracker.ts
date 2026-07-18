@@ -5,7 +5,8 @@ export type TrackerCategory =
   | "tag-manager"
   | "session-recording"
   | "support"
-  | "necessary";
+  | "necessary"
+  | "payments";
 
 export interface TrackerDefinition {
   id: string;
