@@ -3,6 +3,8 @@ import type { PlatformService } from "./platform-service";
 import { consentEngine } from "./consent";
 import { localizationEngine } from "./localization/engine";
 
+import { logger } from "./logger";
+
 class ClientPlatformRuntime {
   private initialized = false;
 
@@ -22,9 +24,7 @@ class ClientPlatformRuntime {
       service.initialize();
     }
 
-    console.log(
-      "🚀 Client Platform initialized"
-    );
+    logger.info("Client Platform initialized");
   }
 }
 

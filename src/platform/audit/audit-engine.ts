@@ -3,6 +3,7 @@ import type { PlatformService } from "@/platform/platform-service";
 import { PlatformServices } from "@/platform/container/platform-services";
 
 import { recordAuditLog } from "@/services/audit.service";
+import { logger } from "@/platform/logger";
 
 export class AuditEngine implements PlatformService {
   readonly name = PlatformServices.AUDIT;
@@ -10,7 +11,7 @@ export class AuditEngine implements PlatformService {
   private initialized = false;
 
   initialize() {
-    console.log("✅ AuditEngine initialized");
+    logger.info("AuditEngine initialized");
   if (this.initialized) {
     return;
   }
@@ -18,7 +19,7 @@ export class AuditEngine implements PlatformService {
   this.initialized = true;
 
   eventBus.subscribeAll(async (event) => {
-    console.log(`[AUDIT] ${event.type}`, {
+    logger.info(`[AUDIT] ${event.type}`, {
       id: event.id,
       timestamp: event.timestamp,
       payload: event.payload,
@@ -50,8 +51,8 @@ export class AuditEngine implements PlatformService {
         payload,
       });
     } catch (error) {
-      console.error(
-        "[AUDIT ENGINE]",
+      logger.error(
+        "[AUDIT ENGINE] Failed to record audit log:",
         error
       );
     }

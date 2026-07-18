@@ -1,6 +1,6 @@
 import {
-  MemoryRateLimitStore,
-} from "./memory-store";
+  SupabaseRateLimitStore,
+} from "./supabase-store";
 
 import type {
   RateLimitStore,
@@ -10,15 +10,8 @@ export class RateLimitEngine {
   private readonly store: RateLimitStore;
 
   constructor() {
-    // Future:
-    // if (process.env.RATE_LIMIT_STORE === "redis") {
-    //   this.store = new RedisRateLimitStore();
-    // } else {
-    //   this.store = new MemoryRateLimitStore();
-    // }
-
     this.store =
-      new MemoryRateLimitStore();
+      new SupabaseRateLimitStore();
   }
 
   consume(

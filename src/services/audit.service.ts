@@ -2,6 +2,7 @@ import {
   createAuditLog,
   listAuditLogs,
   getAuditLogById,
+  getAuditStatsFromDb,
 } from "@/repositories/audit.repository";
 
 import { exportData } from "./export.service";
@@ -61,30 +62,9 @@ export async function getAuditLog(
 export async function getAuditStatistics(
   companyId: string
 ) {
-  const { logs } =
-  await getAuditLogs(companyId);
-
-  return {
-    total: logs.length,
-
-    today: logs.filter((log) => {
-      const created =
-        new Date(log.created_at);
-
-      const now = new Date();
-
-      return (
-        created.toDateString() ===
-        now.toDateString()
-      );
-    }).length,
-
-    eventTypes: [
-      ...new Set(
-        logs.map((log) => log.event_type)
-      ),
-    ].length,
-  };
+  const { data, error } = await getAuditStatsFromDb(companyId);
+  if (error) throw error;
+  return data as { total: number; today: number; eventTypes: number };
 }
 
 export async function exportAuditLogs(

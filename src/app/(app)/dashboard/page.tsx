@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { ensureCompany } from "@/services/company.service";
+import { logger } from "@/platform/logger";
 import { StatCard } from "@/components/dashboard/stat-card";
 import {
   ShieldCheck,
@@ -30,7 +31,7 @@ const company = await ensureCompany(
     : "My Company"
 );
 
-console.log("Company object:", company);
+logger.debug("Company object:", company);
 
 if (!company.is_onboarded) {
   redirect("/onboarding");

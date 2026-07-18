@@ -9,6 +9,12 @@ import {
   Users,
   ShieldCheck,
   Settings,
+  History,
+  UserCheck,
+  AlertCircle,
+  Scale,
+  CreditCard,
+  Code2,
 } from "lucide-react";
 
 const links = [
@@ -28,9 +34,34 @@ const links = [
     icon: FileText,
   },
   {
-    href: "/team",
-    label: "Team",
-    icon: Users,
+    href: "/requests",
+    label: "DSAR Requests",
+    icon: UserCheck,
+  },
+  {
+    href: "/audit",
+    label: "Audit Logs",
+    icon: History,
+  },
+  {
+    href: "/compliance/breach",
+    label: "CERT-In Breach",
+    icon: AlertCircle,
+  },
+  {
+    href: "/compliance/dpbi",
+    label: "DPBI Guidance",
+    icon: Scale,
+  },
+  {
+    href: "/docs",
+    label: "Developer API",
+    icon: Code2,
+  },
+  {
+    href: "/billing",
+    label: "Billing",
+    icon: CreditCard,
   },
   {
     href: "/settings/company",

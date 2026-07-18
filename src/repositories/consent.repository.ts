@@ -138,3 +138,7 @@ export async function updateConsent(
     .select()
     .single();
 }
+
+export async function getConsentStatsFromDb(companyId: string) {
+  return supabaseAdmin.rpc("get_consent_stats", { p_company_id: companyId });
+}

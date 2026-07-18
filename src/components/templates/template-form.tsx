@@ -18,6 +18,57 @@ type Props = {
   submitLabel?: string;
 };
 
+const PRESETS = [
+  {
+    name: "Default Cookie Notice (English)",
+    values: {
+      title: "Default Cookie Notice (English)",
+      description: "Standard DPDP compliant English cookie consent template.",
+      purpose: "Website Analytics & Personalization",
+      legal_basis: "Consent",
+      retention_period: "Until withdrawn",
+      consent_text: "We use cookies to analyze web traffic, personalize content, and display relevant advertisements. By clicking Accept, you consent to our use of cookies in accordance with our Privacy Policy. You can withdraw your consent at any time.",
+      is_required: false,
+    }
+  },
+  {
+    name: "Default Cookie Notice (Hindi)",
+    values: {
+      title: "Default Cookie Notice (Hindi)",
+      description: "Standard DPDP compliant Hindi cookie consent template.",
+      purpose: "वेबसाइट विश्लेषण और वैयक्तिकरण (Website Analytics)",
+      legal_basis: "सहमति (Consent)",
+      retention_period: "वापस लेने तक (Until withdrawn)",
+      consent_text: "हम अपने उपयोगकर्ताओं के अनुभव को बेहतर बनाने, ट्रैफ़िक का विश्लेषण करने और विज्ञापनों को अनुकूलित करने के लिए कुकीज़ का उपयोग करते हैं। 'स्वीकार करें' पर क्लिक करके, आप हमारी गोपनीयता नीति के अनुसार कुकीज़ के उपयोग के लिए सहमति देते हैं। आप किसी भी समय अपनी सहमति वापस ले सकते हैं।",
+      is_required: false,
+    }
+  },
+  {
+    name: "Minors Parental Consent (Section 9)",
+    values: {
+      title: "Parental Consent for Minors (English)",
+      description: "DPDP Section 9 compliant child data processing consent template.",
+      purpose: "Educational/Child Oriented Services",
+      legal_basis: "Verifiable Parental Consent",
+      retention_period: "Until account deletion",
+      consent_text: "As the parent or legal guardian of the child, I hereby grant verifiable consent for PrivyStack to process my child's personal data (such as name, age, and grade details) to deliver services in accordance with Section 9 of the DPDP Act 2023. I understand that I can withdraw this consent or inspect the processed data at any time.",
+      is_required: true,
+    }
+  },
+  {
+    name: "Marketing and Promotions (English)",
+    values: {
+      title: "Marketing Outreach (English)",
+      description: "Consent for promotional messages and emails.",
+      purpose: "Marketing and Promotions",
+      legal_basis: "Consent",
+      retention_period: "2 Years",
+      consent_text: "I consent to receive promotional emails, SMS notifications, and WhatsApp updates from PrivyStack regarding new features, offers, and compliance guidelines. I understand my contact info will not be shared with third parties and I can opt out instantly.",
+      is_required: false,
+    }
+  }
+];
+
 export function TemplateForm({
   onSubmitAction,
   initialValues,
@@ -26,6 +77,7 @@ export function TemplateForm({
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<TemplateValues>({
     resolver: zodResolver(templateSchema),
@@ -47,6 +99,33 @@ export function TemplateForm({
       onSubmit={handleSubmit(onSubmitAction)}
       className="space-y-6"
     >
+      {/* Preset Selector */}
+      <div className="rounded-lg border border-indigo-100 bg-indigo-50/30 p-4">
+        <Label htmlFor="preset-select" className="text-xs font-semibold text-indigo-900 uppercase tracking-wider">
+          💡 Populate from DPDP Compliance Preset
+        </Label>
+        <select
+          id="preset-select"
+          onChange={(e) => {
+            const preset = PRESETS.find(p => p.name === e.target.value);
+            if (preset) {
+              Object.entries(preset.values).forEach(([key, val]) => {
+                setValue(key as keyof TemplateValues, val);
+              });
+            }
+          }}
+          className="mt-2 block w-full rounded-md border border-indigo-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          defaultValue=""
+        >
+          <option value="" disabled>Select a bilingual or Section 9 preset...</option>
+          {PRESETS.map((p) => (
+            <option key={p.name} value={p.name}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Template Title */}
 
       <div>

@@ -98,3 +98,7 @@ export async function getAuditLogById(
     .eq("id", id)
     .single();
 }
+
+export async function getAuditStatsFromDb(companyId: string) {
+  return supabaseAdmin.rpc("get_audit_stats", { p_company_id: companyId });
+}

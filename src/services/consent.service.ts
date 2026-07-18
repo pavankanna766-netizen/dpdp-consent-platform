@@ -6,6 +6,7 @@ import {
   listConsentHistory,
   listConsents,
   withdrawConsent,
+  getConsentStatsFromDb,
 } from "@/repositories/consent.repository";
 import { publishEvent, PlatformEvents } from "@/platform";
 import { buildEvidence } from "@/platform/consent/evidence/builder";
@@ -245,11 +246,7 @@ export function getConsentReceipt(
 }
 
 export async function getConsentStatistics(companyId: string) {
-  const consents = await getCompanyConsents(companyId);
-
-  return {
-    total: consents.length,
-    granted: consents.filter((consent) => consent.status === "granted").length,
-    withdrawn: consents.filter((consent) => consent.status === "withdrawn").length,
-  };
+  const { data, error } = await getConsentStatsFromDb(companyId);
+  if (error) throw error;
+  return data as { total: number; granted: number; withdrawn: number };
 }

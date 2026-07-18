@@ -22,6 +22,8 @@ import {
   withPublicBannerHeaders,
 } from "@/modules/banner/application/public-http";
 
+import { idempotencyEngine } from "@/platform/idempotency";
+
 export async function OPTIONS() {
   return publicBannerOptions();
 }
@@ -48,12 +50,28 @@ export async function POST(
       ],
 
       handler: async ({ body, clientIp, request }) => {
-        const result = await submitPublicConsent(body, {
-          ipAddress: clientIp.split(",")[0]?.trim(),
-          userAgent: request.headers
-            .get("user-agent")
-            ?.slice(0, 512),
-        });
+        const idempotencyKey =
+          request.headers.get("idempotency-key") ||
+          request.headers.get("x-idempotency-key");
+
+        const executeSubmission = async () => {
+          return submitPublicConsent(body, {
+            ipAddress: clientIp.split(",")[0]?.trim(),
+            userAgent: request.headers
+              .get("user-agent")
+              ?.slice(0, 512),
+          });
+        };
+
+        const result = idempotencyKey
+          ? (
+              await idempotencyEngine.execute(
+                idempotencyKey,
+                86400 * 1000, // 24 Hours TTL
+                executeSubmission
+              )
+            ).value
+          : await executeSubmission();
 
         return successResponse(result);
       },

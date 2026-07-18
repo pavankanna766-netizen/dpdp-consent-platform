@@ -10,17 +10,17 @@ import { xlsxProvider } from "./providers/xlsx.provider";
 
 import { pdfProvider } from "./providers/pdf.provider";
 
+import { logger } from "../logger";
+
 export class ExportEngine
   implements PlatformService
 {
   readonly name = "export-engine";
 
   initialize() {
-  console.log(
-    "📦 ExportEngine initialized"
-  );
+    logger.info("ExportEngine initialized");
 
-  this.registry.register(
+    this.registry.register(
   csvProvider
 );
 

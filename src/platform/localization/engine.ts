@@ -12,6 +12,10 @@ import {
   englishProvider,
 } from "./languages/en";
 
+import {
+  hindiProvider,
+} from "./languages/hi";
+
 import type {
   SupportedLanguage,
 } from "./types";
@@ -25,6 +29,10 @@ export class LocalizationEngine
   initialize() {
     localizationRegistry.register(
       englishProvider
+    );
+
+    localizationRegistry.register(
+      hindiProvider
     );
 
     logger.info(

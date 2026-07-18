@@ -15,4 +15,6 @@ export interface ComplianceRecommendation {
     | "low"
     | "medium"
     | "high";
+
+  dpdpReference?: string;
 }

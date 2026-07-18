@@ -12,6 +12,27 @@ const mockDbStore: Record<string, any[]> = {
 
 // Supabase Client Mock
 const mockClient = {
+  rpc: (name: string, args: any) => {
+    if (name === "get_audit_stats") {
+      return Promise.resolve({
+        data: { total: 0, today: 0, eventTypes: 0 },
+        error: null,
+      });
+    }
+    if (name === "get_consent_stats") {
+      return Promise.resolve({
+        data: { total: 0, granted: 0, withdrawn: 0 },
+        error: null,
+      });
+    }
+    if (name === "consume_rate_limit_token") {
+      return Promise.resolve({
+        data: [{ allowed: true, remaining: args.p_limit - 1, reset_at: Date.now() + args.p_window_ms }],
+        error: null,
+      });
+    }
+    return Promise.resolve({ data: null, error: null });
+  },
   from: (table: string) => {
     return {
       insert: (values: any) => {

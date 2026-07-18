@@ -38,16 +38,9 @@ export function CompanyInfoStep({
   onNext(values);
 }
 
-console.log(errors);
-
   return (
     <form
-  onSubmit={handleSubmit(
-    onSubmit,
-    (errors) => {
-      console.log("FORM ERRORS:", errors);
-    }
-  )}
+  onSubmit={handleSubmit(onSubmit)}
   className="space-y-6"
 >
       {/* Company Name */}
