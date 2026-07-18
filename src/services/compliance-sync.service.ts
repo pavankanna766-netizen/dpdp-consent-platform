@@ -45,6 +45,7 @@ export async function autoPopulateRegistry(
         purpose: purpose,
         agreement_clears_safeguard_bar: false, // Default to false (requires legal review)
         renewal_status: "Active",
+        unconfirmed: true, // Scanner auto-discoveries start unconfirmed
       });
       existingVendorNames.add(providerLower);
     }
@@ -61,6 +62,7 @@ export async function autoPopulateRegistry(
         shared_with_processor: providerName,
         legal_basis: detection.requiresConsent ? "Consent (Section 6)" : "Legitimate Use",
         retention_period: "Until withdrawn",
+        unconfirmed: true, // Scanner auto-discoveries start unconfirmed
       });
       existingInventoryKeys.add(inventoryKey);
     }

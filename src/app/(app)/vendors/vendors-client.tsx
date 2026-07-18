@@ -16,6 +16,7 @@ interface Vendor {
   agreement_clears_safeguard_bar: boolean;
   renewal_status: string;
   contract_expiry: string | null;
+  unconfirmed: boolean;
 }
 
 export function VendorRegistryClient({ initialVendors }: { initialVendors: Vendor[] }) {
@@ -29,6 +30,15 @@ export function VendorRegistryClient({ initialVendors }: { initialVendors: Vendo
   const [categoriesInput, setCategoriesInput] = useState("Usage Metrics, Device IDs");
   const [clearsBar, setClearsBar] = useState(false);
   const [expiry, setExpiry] = useState("");
+
+  const handleConfirmVendor = (vendorId: string) => {
+    startTransition(async () => {
+      await updateVendorAction(vendorId, {
+        unconfirmed: false,
+      });
+      router.refresh();
+    });
+  };
 
   const handleToggleAudit = (vendorId: string, currentStatus: boolean) => {
     startTransition(async () => {
@@ -170,6 +180,20 @@ export function VendorRegistryClient({ initialVendors }: { initialVendors: Vendo
                     )}
                   </button>
                 </div>
+
+                {vendor.unconfirmed && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-3 mt-3 flex items-center justify-between shadow-sm">
+                    <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wide">🔍 Auto-Discovered (Unconfirmed)</span>
+                    <Button
+                      size="sm"
+                      onClick={() => handleConfirmVendor(vendor.id)}
+                      className="h-7 text-[10px] bg-amber-600 hover:bg-amber-700 text-white font-semibold"
+                      disabled={isPending}
+                    >
+                      Confirm Vendor
+                    </Button>
+                  </div>
+                )}
 
                 <div className="space-y-3 pt-3">
                   <div className="text-xs">

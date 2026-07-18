@@ -8,6 +8,7 @@ export async function createVendor(values: {
   agreement_clears_safeguard_bar: boolean;
   renewal_status: string;
   contract_expiry?: string;
+  unconfirmed?: boolean;
 }) {
   return supabaseAdmin
     .from("vendor_registry")
@@ -34,6 +35,7 @@ export async function updateVendor(
     agreement_clears_safeguard_bar: boolean;
     renewal_status: string;
     contract_expiry?: string;
+    unconfirmed?: boolean;
   }>
 ) {
   return supabaseAdmin

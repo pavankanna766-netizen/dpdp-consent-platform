@@ -9,6 +9,7 @@ export async function createInventoryItem(values: {
   shared_with_processor?: string;
   legal_basis: string;
   retention_period: string;
+  unconfirmed?: boolean;
 }) {
   return supabaseAdmin
     .from("data_inventory")
@@ -36,6 +37,7 @@ export async function updateInventoryItem(
     shared_with_processor?: string;
     legal_basis: string;
     retention_period: string;
+    unconfirmed?: boolean;
   }>
 ) {
   return supabaseAdmin

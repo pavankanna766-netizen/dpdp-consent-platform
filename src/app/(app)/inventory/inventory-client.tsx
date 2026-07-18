@@ -6,7 +6,7 @@ import { Plus, Trash2, Shield, Info, Link, FileSpreadsheet } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createInventoryItemAction, deleteInventoryItemAction } from "./actions";
+import { createInventoryItemAction, updateInventoryItemAction, deleteInventoryItemAction } from "./actions";
 
 interface InventoryItem {
   id: string;
@@ -17,6 +17,7 @@ interface InventoryItem {
   shared_with_processor: string | null;
   legal_basis: string;
   retention_period: string;
+  unconfirmed: boolean;
 }
 
 export function InventoryClient({ initialItems }: { initialItems: InventoryItem[] }) {
@@ -32,6 +33,15 @@ export function InventoryClient({ initialItems }: { initialItems: InventoryItem[
   const [processor, setProcessor] = useState("");
   const [basis, setBasis] = useState("Consent (Section 6)");
   const [retention, setRetention] = useState("Until withdrawn");
+
+  const handleConfirmItem = (itemId: string) => {
+    startTransition(async () => {
+      await updateInventoryItemAction(itemId, {
+        unconfirmed: false,
+      });
+      router.refresh();
+    });
+  };
 
   const handleDelete = (itemId: string) => {
     if (!confirm("Are you sure you want to delete this inventory item?")) return;
@@ -173,8 +183,24 @@ export function InventoryClient({ initialItems }: { initialItems: InventoryItem[
             </thead>
             <tbody className="divide-y divide-gray-200 text-gray-700">
               {initialItems.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">{item.category}</td>
+                <tr
+                  key={item.id}
+                  className={
+                    item.unconfirmed
+                      ? "bg-amber-50/20 hover:bg-amber-50/30 transition-colors border-l-2 border-l-amber-500"
+                      : "hover:bg-slate-50/50 transition-colors"
+                  }
+                >
+                  <td className="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <span>{item.category}</span>
+                      {item.unconfirmed && (
+                        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[8px] font-bold text-amber-800 uppercase tracking-wider shrink-0">
+                          Review
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-gray-800">
                       {item.data_subject}
@@ -210,12 +236,22 @@ export function InventoryClient({ initialItems }: { initialItems: InventoryItem[
                       <span className="font-medium text-gray-800">{item.retention_period}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-right whitespace-nowrap">
+                  <td className="px-6 py-4 text-right whitespace-nowrap space-x-1.5">
+                    {item.unconfirmed && (
+                      <Button
+                        onClick={() => handleConfirmItem(item.id)}
+                        size="sm"
+                        className="h-7 text-[10px] bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-sm"
+                        disabled={isPending}
+                      >
+                        Confirm
+                      </Button>
+                    )}
                     <Button
                       onClick={() => handleDelete(item.id)}
                       variant="ghost"
                       size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2 inline-flex items-center justify-center h-7 w-7"
                       disabled={isPending}
                     >
                       <Trash2 className="h-4 w-4" />

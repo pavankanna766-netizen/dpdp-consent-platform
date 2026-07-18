@@ -11,6 +11,7 @@ import { scoreEngine } from "./score-engine";
 import { consentModeService } from "./consent-mode.service";
 import { createFindings } from "@/repositories/finding.repository";
 import { autoPopulateRegistry } from "@/services/compliance-sync.service";
+import { runLlmGapAnalysis } from "./llm-analyzer.service";
 
 import type {
   ScanContext,
@@ -118,6 +119,9 @@ export class DefaultScanPipeline
         crawlResult.cookies,
         pageSignals
       );
+
+      // Execute AI-native LLM Gap Analysis on observed vs. disclosed trackers
+      await runLlmGapAnalysis(context.companyId, scan.id, detections, crawlResult.cookies);
 
       const consentModeResult = consentModeService.detect(
         crawlResult.inlineScripts,

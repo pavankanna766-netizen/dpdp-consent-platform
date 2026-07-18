@@ -95,6 +95,10 @@ async restore(
       throw new Error("Policy not found or unauthorized");
     }
 
+    if (!data.reviewed_by_counsel) {
+      throw new Error("Policy cannot be published without legal counsel review approval (reviewed_by_counsel must be true)");
+    }
+
     return updatePrivacyPolicy(
       id,
       {
