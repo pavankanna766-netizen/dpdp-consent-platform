@@ -24,18 +24,26 @@ const mockClient = {
         };
       },
       update: (values: any) => {
-        return {
+        let matchedRecord: any = null;
+        const chain = {
           eq: (col: string, val: any) => {
             const list = mockDbStore[table] || [];
-            const record = list.find(item => item[col] === val) || {};
-            Object.assign(record, values);
-            return {
-              select: () => ({
-                single: () => Promise.resolve({ data: record, error: null })
-              })
-            };
+            const record = list.find(item => item[col] === val);
+            if (record) {
+              matchedRecord = record;
+              Object.assign(matchedRecord, values);
+            }
+            return chain;
+          },
+          select: () => ({
+            single: () => Promise.resolve({ data: matchedRecord || values, error: null }),
+            maybeSingle: () => Promise.resolve({ data: matchedRecord || values, error: null })
+          }),
+          then: (onfulfilled: any) => {
+            return Promise.resolve({ data: matchedRecord || values, error: null }).then(onfulfilled);
           }
         };
+        return chain;
       },
       select: (fields: string = "*") => {
         return {
@@ -61,18 +69,18 @@ const mockClient = {
             }
 
             const chain = {
+              eq: (col2: string, val2: any) => chain,
               single: () => Promise.resolve({ data: record, error: null }),
               maybeSingle: () => Promise.resolve({ data: record, error: null }),
-              eq: (col2: string, val2: any) => ({
-                single: () => Promise.resolve({ data: record, error: null }),
-                maybeSingle: () => Promise.resolve({ data: record, error: null })
-              }),
               order: (by: string, opts: any) => ({
                 limit: (lim: number) => ({
                   single: () => Promise.resolve({ data: record, error: null }),
                   maybeSingle: () => Promise.resolve({ data: record, error: null })
                 })
-              })
+              }),
+              then: (onfulfilled: any) => {
+                return Promise.resolve({ data: record, error: null }).then(onfulfilled);
+              }
             };
             return chain;
           },
@@ -81,14 +89,24 @@ const mockClient = {
           })
         };
       },
-      delete: () => ({
-        eq: (col: string, val: any) => {
-          if (mockDbStore[table]) {
-            mockDbStore[table] = mockDbStore[table].filter(item => item[col] !== val);
+      delete: () => {
+        const chain = {
+          eq: (col: string, val: any) => {
+            if (mockDbStore[table]) {
+              mockDbStore[table] = mockDbStore[table].filter(item => item[col] !== val);
+            }
+            return chain;
+          },
+          select: () => ({
+            single: () => Promise.resolve({ data: null, error: null }),
+            maybeSingle: () => Promise.resolve({ data: null, error: null })
+          }),
+          then: (onfulfilled: any) => {
+            return Promise.resolve({ data: null, error: null }).then(onfulfilled);
           }
-          return Promise.resolve({ data: null, error: null });
-        }
-      })
+        };
+        return chain;
+      }
     };
   }
 };
@@ -176,10 +194,10 @@ async function testRepositories() {
     assert(!!scanResult.data, "Scan creation failed");
     scanId = scanResult.data!.id;
 
-    const fetchedScan = await getScan(scanId);
+    const fetchedScan = await getScan(companyId, scanId);
     assert(fetchedScan.data?.url === "https://test-workspace.com", "Failed to fetch scan by ID");
 
-    await completeScan(scanId, {
+    await completeScan(companyId, scanId, {
       status: "completed",
       completed_at: new Date().toISOString(),
       duration_ms: 5000,
@@ -230,7 +248,7 @@ async function testRepositories() {
     const fetchedBanner = await getCompanyBanner(companyId, bannerId);
     assert(fetchedBanner.data?.name === "Default Consent Banner", "Failed to fetch banner by company ID");
 
-    await updateBanner(bannerId, {
+    await updateBanner(companyId, bannerId, {
       theme: "dark",
       position: "top"
     });
