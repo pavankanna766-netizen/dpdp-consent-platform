@@ -6,11 +6,15 @@ export async function createRequest(values: {
   request_type: string;
   description: string | null;
 }) {
+  const slaDueDate = new Date();
+  slaDueDate.setDate(slaDueDate.getDate() + 30); // 30-day compliance SLA window
+
   return supabaseAdmin
     .from("dsar_requests")
     .insert({
       ...values,
       status: "pending",
+      sla_due_date: slaDueDate.toISOString(),
     })
     .select()
     .single();

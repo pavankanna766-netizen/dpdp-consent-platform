@@ -56,3 +56,14 @@ export async function deleteInventoryItem(companyId: string, id: string) {
     .eq("company_id", companyId)
     .eq("id", id);
 }
+
+export async function linkInventoryToVendor(dataInventoryId: string, vendorId: string) {
+  return supabaseAdmin
+    .from("data_inventory_vendors")
+    .insert({
+      data_inventory_id: dataInventoryId,
+      vendor_id: vendorId,
+    })
+    .select()
+    .maybeSingle();
+}

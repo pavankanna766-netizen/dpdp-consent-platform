@@ -85,7 +85,8 @@ const mockClient = {
                 theme: "dark",
                 status: "published",
                 archived: false,
-                version: 1
+                version: 1,
+                reviewed_by_counsel: true
               };
             }
 

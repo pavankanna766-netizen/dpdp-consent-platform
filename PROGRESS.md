@@ -46,3 +46,12 @@ This document tracks all features, schema migrations, and bug fixes applied to P
 ### 10. Incident Responses, Billing, & Docs
 *   **What changed:** Integrated twin regulatory clocks (6h CERT-In vs 72h DPBI) on breach incidents, built a Razorpay subscription overlay simulator, and added the Developer SDK API guides.
 *   **Why:** Completes the launch readiness loop.
+
+### 11. Relational Hardening & DB Integrity
+*   **What changed:** 
+    1. Created the `data_inventory_vendors` join table to link inventory items and vendors relationally, replacing flat text references to eliminate naming drift risks.
+    2. Enforced legal safety gates at the database schema level by adding `CHECK` constraints on `privacy_policies` and `cookie_policies` tables (`status <> 'published' or reviewed_by_counsel = true`).
+    3. Revamped the breach incident dashboard with a persistent schema mapping dual deadline clocks (`certin_deadline` and `dpbi_deadline`) and notified timestamps.
+    4. Auto-calculated the 30-day compliance SLA deadline (`sla_due_date`) inside the `createRequest` DSAR repository workflow.
+*   **Why:** Secures the compliance ledger from data desynchronization and guarantees legal counsel approvals at the system level.
+

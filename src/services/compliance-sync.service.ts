@@ -1,20 +1,16 @@
 import { createVendor, listVendors } from "@/repositories/vendor.repository";
-import { createInventoryItem, listInventoryItems } from "@/repositories/inventory.repository";
+import { createInventoryItem, listInventoryItems, linkInventoryToVendor } from "@/repositories/inventory.repository";
 import type { DetectionResult } from "@/modules/scanner/domain/detection";
 
 export async function autoPopulateRegistry(
   companyId: string,
   detections: DetectionResult[]
 ) {
-  // 1. Fetch existing vendors to avoid duplicates
+  // 1. Fetch existing vendors to check for duplicates
   const { data: existingVendors = [] } = await listVendors(companyId);
-  const existingVendorNames = new Set(existingVendors?.map((v) => v.name.toLowerCase()) || []);
 
-  // 2. Fetch existing inventory items to avoid duplicates
+  // 2. Fetch existing inventory items to check for duplicates
   const { data: existingInventory = [] } = await listInventoryItems(companyId);
-  const existingInventoryKeys = new Set(
-    existingInventory?.map((i) => `${i.category.toLowerCase()}:${(i.shared_with_processor || "").toLowerCase()}`) || []
-  );
 
   for (const detection of detections) {
     const providerName = detection.provider || detection.id;
@@ -36,9 +32,10 @@ export async function autoPopulateRegistry(
       dataTypes = ["Support chat history", "Email/Mobile ticket ID"];
     }
 
-    // A. Add to Vendor Registry
-    if (!existingVendorNames.has(providerLower)) {
-      await createVendor({
+    // A. Ensure Vendor exists
+    let vendor = existingVendors?.find((v) => v.name.toLowerCase() === providerLower);
+    if (!vendor) {
+      const { data: newVendor } = await createVendor({
         company_id: companyId,
         name: providerName,
         data_categories: dataCategories,
@@ -47,15 +44,22 @@ export async function autoPopulateRegistry(
         renewal_status: "Active",
         unconfirmed: true, // Scanner auto-discoveries start unconfirmed
       });
-      existingVendorNames.add(providerLower);
+      if (newVendor) {
+        vendor = newVendor;
+        existingVendors?.push(newVendor);
+      }
     }
 
-    // B. Add to Data Inventory
-    const inventoryKey = `${detection.category.toLowerCase()}:${providerLower}`;
-    if (!existingInventoryKeys.has(inventoryKey)) {
-      await createInventoryItem({
+    // B. Ensure Data Inventory item exists
+    const categoryName = detection.category.charAt(0).toUpperCase() + detection.category.slice(1) + " Tracker";
+    let inventoryItem = existingInventory?.find(
+      (i) => i.category.toLowerCase() === categoryName.toLowerCase() &&
+             (i.shared_with_processor || "").toLowerCase() === providerLower
+    );
+    if (!inventoryItem) {
+      const { data: newInventoryItem } = await createInventoryItem({
         company_id: companyId,
-        category: detection.category.charAt(0).toUpperCase() + detection.category.slice(1) + " Tracker",
+        category: categoryName,
         data_subject: "Website Visitors",
         purpose: purpose,
         data_types: dataTypes,
@@ -64,7 +68,15 @@ export async function autoPopulateRegistry(
         retention_period: "Until withdrawn",
         unconfirmed: true, // Scanner auto-discoveries start unconfirmed
       });
-      existingInventoryKeys.add(inventoryKey);
+      if (newInventoryItem) {
+        inventoryItem = newInventoryItem;
+        existingInventory?.push(newInventoryItem);
+      }
+    }
+
+    // C. Create relational link inside the join table
+    if (inventoryItem && vendor) {
+      await linkInventoryToVendor(inventoryItem.id, vendor.id);
     }
   }
 }
