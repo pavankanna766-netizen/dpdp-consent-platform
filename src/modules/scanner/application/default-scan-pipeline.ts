@@ -10,6 +10,7 @@ import { complianceService } from "./compliance.service";
 import { scoreEngine } from "./score-engine";
 import { consentModeService } from "./consent-mode.service";
 import { createFindings } from "@/repositories/finding.repository";
+import { autoPopulateRegistry } from "@/services/compliance-sync.service";
 
 import type {
   ScanContext,
@@ -86,6 +87,9 @@ export class DefaultScanPipeline
         scan.id,
         detections
       );
+
+      // Auto-populate Vendor Registry and Data Inventory from the crawled detections
+      await autoPopulateRegistry(context.companyId, detections);
 
       await updateScanProgress(
         context.companyId,

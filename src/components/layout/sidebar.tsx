@@ -15,6 +15,8 @@ import {
   Scale,
   CreditCard,
   Code2,
+  Building2,
+  Database,
 } from "lucide-react";
 
 const links = [
@@ -32,6 +34,16 @@ const links = [
     href: "/templates",
     label: "Templates",
     icon: FileText,
+  },
+  {
+    href: "/inventory",
+    label: "Data Inventory",
+    icon: Database,
+  },
+  {
+    href: "/vendors",
+    label: "Vendor Registry",
+    icon: Building2,
   },
   {
     href: "/requests",
