@@ -51,7 +51,8 @@ export async function POST(req: NextRequest) {
       currency: order.currency,
       companyName: company.company_name,
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to create checkout" }, { status: 500 });
+  } catch (error) {
+    const err = error as Error;
+    return NextResponse.json({ error: err.message || "Failed to create checkout" }, { status: 500 });
   }
 }

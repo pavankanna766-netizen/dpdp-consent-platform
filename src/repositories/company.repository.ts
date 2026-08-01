@@ -15,6 +15,9 @@ export async function findCompanyByClerkUserId(clerkUserId: string) {
         country,
         timezone,
         is_onboarded,
+        onboarding_step,
+        sdk_connected,
+        sdk_last_ping_at,
         created_at,
         updated_at
       )
@@ -56,6 +59,7 @@ export async function createCompany(
 
   return { data: company, error: null };
 }
+
 export async function findCompanyById(companyId: string) {
   return supabaseAdmin
     .from("companies")
@@ -66,7 +70,7 @@ export async function findCompanyById(companyId: string) {
 
 export async function updateCompany(
   companyId: string,
-  values: {
+  values: Partial<{
     company_name: string;
     industry: string;
     company_size: string;
@@ -74,7 +78,10 @@ export async function updateCompany(
     country: string;
     timezone: string;
     is_onboarded: boolean;
-  }
+    onboarding_step: number;
+    sdk_connected: boolean;
+    sdk_last_ping_at: string | null;
+  }>
 ) {
   return supabaseAdmin
     .from("companies")
@@ -83,6 +90,7 @@ export async function updateCompany(
     .select()
     .single();
 }
+
 export async function completeCompanyOnboarding(values: {
   company_id: string;
   company_name: string;

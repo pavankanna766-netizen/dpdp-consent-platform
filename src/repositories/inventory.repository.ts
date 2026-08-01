@@ -1,14 +1,45 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
+export interface DataInventoryRecord {
+  id: string;
+  company_id: string;
+  category: string;
+  processing_activity: string;
+  data_subject: string;
+  purpose: string;
+  data_types: string[];
+  shared_with_processor: string | null;
+  legal_basis: string;
+  retention_period: string;
+  storage_location: string;
+  cross_border_transfer: boolean;
+  transfer_countries: string[];
+  encryption_status: string;
+  owner_email: string | null;
+  status: "active" | "archived" | "review_required";
+  ai_classification_confidence: number | null;
+  unconfirmed: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export async function createInventoryItem(values: {
   company_id: string;
   category: string;
+  processing_activity?: string;
   data_subject: string;
   purpose: string;
   data_types: string[];
   shared_with_processor?: string;
   legal_basis: string;
   retention_period: string;
+  storage_location?: string;
+  cross_border_transfer?: boolean;
+  transfer_countries?: string[];
+  encryption_status?: string;
+  owner_email?: string;
+  status?: "active" | "archived" | "review_required";
+  ai_classification_confidence?: number;
   unconfirmed?: boolean;
 }) {
   return supabaseAdmin
@@ -31,13 +62,21 @@ export async function updateInventoryItem(
   id: string,
   values: Partial<{
     category: string;
+    processing_activity: string;
     data_subject: string;
     purpose: string;
     data_types: string[];
-    shared_with_processor?: string;
+    shared_with_processor?: string | null;
     legal_basis: string;
     retention_period: string;
-    unconfirmed?: boolean;
+    storage_location: string;
+    cross_border_transfer: boolean;
+    transfer_countries: string[];
+    encryption_status: string;
+    owner_email: string | null;
+    status: "active" | "archived" | "review_required";
+    ai_classification_confidence: number;
+    unconfirmed: boolean;
   }>
 ) {
   return supabaseAdmin

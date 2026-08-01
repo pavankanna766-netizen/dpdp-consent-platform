@@ -1,3 +1,5 @@
+import { sanitizeHtml } from "@/platform/security";
+
 interface Props {
   html: string;
 }
@@ -9,7 +11,7 @@ export function DocumentPreview({
     <div
       className="prose max-w-none rounded-xl border bg-white p-8"
       dangerouslySetInnerHTML={{
-        __html: html,
+        __html: sanitizeHtml(html),
       }}
     />
   );

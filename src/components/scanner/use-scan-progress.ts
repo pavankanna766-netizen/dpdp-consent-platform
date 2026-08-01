@@ -21,57 +21,50 @@ export function useScanProgress(
   const [
     progress,
     setProgress,
-  ] =
-    useState<ScanProgress | null>(
-      null
-    );
+  ] = useState<ScanProgress | null>(null);
 
   useEffect(() => {
     if (!scanId) {
       return;
     }
 
+    let intervalId: NodeJS.Timeout | undefined;
+
     async function load() {
-      const response =
-        await fetch(
+      try {
+        const response = await fetch(
           `/api/scanner/progress/${scanId}`
         );
 
-      if (!response.ok) {
-        return;
-      }
-
-      const json =
-        await response.json();
-
-      setProgress(json);
-
-      if (
-        json.status ===
-          "completed" ||
-        json.status ===
-          "failed"
-      ) {
-        if (interval) {
-          clearInterval(
-            interval
-          );
+        if (!response.ok) {
+          return;
         }
+
+        const json = await response.json();
+        const data = json.data ?? json;
+        setProgress(data);
+
+        if (
+          data.status === "completed" ||
+          data.status === "failed"
+        ) {
+          if (intervalId) {
+            clearInterval(intervalId);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load scan progress:", error);
       }
     }
 
     load();
 
-   const interval =
-      setInterval(
-        load,
-        2000
-      );
+    intervalId = setInterval(load, 2000);
 
     return () => {
-        clearInterval(
-          interval
-        );
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
     };
   }, [scanId]);
 

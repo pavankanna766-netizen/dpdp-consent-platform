@@ -71,7 +71,7 @@ export class SummaryService {
     if (consentModeFinding) {
       try {
         parsedConsentMode = JSON.parse(consentModeFinding.recommendation);
-      } catch (e) {
+      } catch {
         // Ignore
       }
     }

@@ -14,8 +14,6 @@ export * from "./error-state";
 
 export * from "./scanner-context";
 
-export * from "./run-scan-button";
-
 export * from "./header";
 
 export * from "./history";
@@ -54,8 +52,6 @@ export * from "./score-history-chart";
 export * from "./status-chip";
 
 export * from "./improvement-card";
-
-export * from "./progress-card";
 
 export * from "./progress-card";
 

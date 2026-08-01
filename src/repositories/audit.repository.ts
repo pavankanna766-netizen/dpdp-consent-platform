@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 /**
@@ -16,39 +15,14 @@ export async function createAuditLog(values: {
   actor: string;
   payload: Record<string, unknown>;
 }) {
-  // 1. Fetch the latest audit log to get the previous entry hash
-  const { data: latestLog } = await supabaseAdmin
-    .from("audit_logs")
-    .select("entry_hash")
-    .eq("company_id", values.company_id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const previousHash = latestLog?.entry_hash ?? "0000000000000000000000000000000000000000000000000000000000000000";
-
-  // 2. Compute current entry hash (SHA-256)
-  const hashPayload = JSON.stringify({
-    previous_entry_hash: previousHash,
-    company_id: values.company_id,
-    event_type: values.event_type,
-    entity_type: values.entity_type,
-    entity_id: values.entity_id,
-    actor: values.actor,
-    payload: values.payload,
+  return supabaseAdmin.rpc("create_audit_log_atomic", {
+    p_company_id: values.company_id,
+    p_event_type: values.event_type,
+    p_entity_type: values.entity_type,
+    p_entity_id: values.entity_id,
+    p_actor: values.actor,
+    p_payload: values.payload,
   });
-
-  const entryHash = crypto.createHash("sha256").update(hashPayload).digest("hex");
-
-  return supabaseAdmin
-    .from("audit_logs")
-    .insert({
-      ...values,
-      previous_entry_hash: previousHash,
-      entry_hash: entryHash,
-    })
-    .select()
-    .single();
 }
 
 export async function listAuditLogs(

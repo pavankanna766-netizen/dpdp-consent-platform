@@ -8,6 +8,7 @@ export async function createBrowser() {
       "--disable-setuid-sandbox",
       "--disable-dev-shm-usage",
       "--disable-gpu",
+      "--disable-blink-features=AutomationControlled",
     ],
   });
-}
+}

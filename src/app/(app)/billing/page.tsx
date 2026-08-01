@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CreditCard, Check, Shield, Zap, Sparkles } from "lucide-react";
+import { Check, Shield, Zap, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const PLANS = [
@@ -135,7 +135,11 @@ export default function BillingPage() {
         name: "PrivyStack Compliance",
         description: `Upgrade to ${plan.name}`,
         order_id: checkoutData.orderId,
-        handler: async function (response: any) {
+        handler: async function (response: {
+          razorpay_payment_id: string;
+          razorpay_order_id: string;
+          razorpay_signature: string;
+        }) {
           setIsProcessing(true);
           try {
             // 3. Cryptographically verify signature on the server
@@ -159,8 +163,9 @@ export default function BillingPage() {
             } else {
               alert(`Payment verification failed: ${verifyData.error}`);
             }
-          } catch (err: any) {
-            alert(`Failed to verify payment signature: ${err.message}`);
+          } catch (err) {
+            const error = err as Error;
+            alert(`Failed to verify payment signature: ${error.message}`);
           } finally {
             setIsProcessing(false);
           }
@@ -174,10 +179,11 @@ export default function BillingPage() {
         },
       };
 
-      const rzp = new (window as any).Razorpay(options);
+      const rzp = new (window as typeof window & { Razorpay: new (options: unknown) => { open: () => void } }).Razorpay(options);
       rzp.open();
-    } catch (err: any) {
-      alert(`Checkout failed: ${err.message}`);
+    } catch (err) {
+      const error = err as Error;
+      alert(`Checkout failed: ${error.message}`);
     } finally {
       setIsProcessing(false);
     }

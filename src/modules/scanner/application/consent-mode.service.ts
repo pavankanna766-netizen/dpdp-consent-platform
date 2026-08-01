@@ -15,45 +15,31 @@ export class ConsentModeService {
       inlineScripts.join("\n");
 
     const hasDefault =
-      source.includes(
-        "consent"
-      ) &&
-      source.includes(
-        "default"
-      );
+      /gtag\s*\(\s*['"]consent['"]\s*,\s*['"]default['"]/i.test(source) ||
+      /['"]consent['"]\s*,\s*['"]default['"]/i.test(source);
 
     const hasUpdate =
-      source.includes(
-        "consent"
-      ) &&
-      source.includes(
-        "update"
-      );
+      /gtag\s*\(\s*['"]consent['"]\s*,\s*['"]update['"]/i.test(source) ||
+      /['"]consent['"]\s*,\s*['"]update['"]/i.test(source);
 
     const adStorage =
-      source.includes(
-        "ad_storage"
-      );
+      /ad_storage\s*:\s*['"]granted['"]/i.test(source) ||
+      source.includes("ad_storage");
 
     const analyticsStorage =
-      source.includes(
-        "analytics_storage"
-      );
+      /analytics_storage\s*:\s*['"]granted['"]/i.test(source) ||
+      source.includes("analytics_storage");
 
     const adUserData =
-      source.includes(
-        "ad_user_data"
-      );
+      /ad_user_data\s*:\s*['"]granted['"]/i.test(source) ||
+      source.includes("ad_user_data");
 
     const adPersonalization =
-      source.includes(
-        "ad_personalization"
-      );
+      /ad_personalization\s*:\s*['"]granted['"]/i.test(source) ||
+      source.includes("ad_personalization");
 
     const waitForUpdate =
-      source.includes(
-        "wait_for_update"
-      );
+      source.includes("wait_for_update");
 
     const detected =
       hasDefault ||

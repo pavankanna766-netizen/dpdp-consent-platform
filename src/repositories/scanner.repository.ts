@@ -107,29 +107,32 @@ export const getScanSummary = cache(async function (
   companyId: string,
   scanId: string
 ) {
-  const [
-    scan,
-    detections,
-    findings,
-  ] = await Promise.all([
-    supabaseAdmin
-      .from("scanner_scans")
-      .select("*")
-      .eq("company_id", companyId)
-      .eq("id", scanId)
-      .single(),
+  // First verify the scan belongs to this company (tenant isolation)
+  const scan = await supabaseAdmin
+    .from("scanner_scans")
+    .select("*")
+    .eq("company_id", companyId)
+    .eq("id", scanId)
+    .single();
 
+  // If the scan doesn't belong to this company, return empty results
+  if (scan.error || !scan.data) {
+    return {
+      scan: null,
+      detections: [],
+      findings: [],
+    };
+  }
+
+  // Only query child tables after confirming company ownership
+  const [detections, findings] = await Promise.all([
     supabaseAdmin
-      .from(
-        "scanner_detections"
-      )
+      .from("scanner_detections")
       .select("*")
       .eq("scan_id", scanId),
 
     supabaseAdmin
-      .from(
-        "scanner_findings"
-      )
+      .from("scanner_findings")
       .select("*")
       .eq("scan_id", scanId),
   ]);

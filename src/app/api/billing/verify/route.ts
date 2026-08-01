@@ -79,7 +79,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to verify signature" }, { status: 500 });
+  } catch (error) {
+    const err = error as Error;
+    return NextResponse.json({ error: err.message || "Failed to verify signature" }, { status: 500 });
   }
 }

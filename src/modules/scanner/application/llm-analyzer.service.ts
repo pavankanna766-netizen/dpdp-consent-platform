@@ -94,11 +94,11 @@ export async function runLlmGapAnalysis(
     }
   }
 
-  // 3. Persist the gap report as a high-severity finding in the audit trail
+  // 3. Persist the gap report as an informational advisory finding in the audit trail
   if (report.mismatches.length > 0) {
     const findingsList = report.mismatches.map((mismatch, idx) => ({
       scan_id: scanId,
-      severity: "high" as const,
+      severity: "info" as const,
       title: mismatch.slice(0, 100),
       recommendation: report.recommendations[idx] || "Update notice disclosures.",
       resolved: false,

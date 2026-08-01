@@ -32,12 +32,6 @@ export class ComplianceDashboardService {
         items
       );
 
-    const next =
-      items.find(
-        (item) =>
-          !item.completed
-      );
-
    return {
   progress,
 

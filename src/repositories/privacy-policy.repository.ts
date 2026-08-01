@@ -5,15 +5,21 @@ export async function createPrivacyPolicy(
   values: {
     company_id: string;
     html_content: string;
+    version?: number;
+    status?: string;
+    sections?: unknown;
+    reviewed_by_counsel?: boolean;
   }
 ) {
   return supabaseAdmin
     .from("privacy_policies")
     .insert({
       company_id: values.company_id,
-
       html_content: values.html_content,
-
+      version: values.version,
+      status: values.status || "draft",
+      sections: values.sections,
+      reviewed_by_counsel: values.reviewed_by_counsel ?? false,
     })
     .select()
     .single();
@@ -63,7 +69,9 @@ export const getPublishedPrivacyPolicy = cache(async function (
     .eq("company_id", companyId)
     .eq("status", "published")
     .eq("archived", false)
-    .single();
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 });
 
 export const listPolicyVersions = cache(async function (

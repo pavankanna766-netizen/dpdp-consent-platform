@@ -15,11 +15,26 @@ export async function updateCompanySlug(
 }
 
 export async function getCompanyBySlug(
-  slug: string
+  identifier: string
 ) {
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      identifier
+    );
+
+  if (isUuid) {
+    const byId = await supabaseAdmin
+      .from("companies")
+      .select("*")
+      .eq("id", identifier)
+      .maybeSingle();
+
+    if (byId.data) return byId;
+  }
+
   return supabaseAdmin
     .from("companies")
     .select("*")
-    .eq("slug", slug)
-    .single();
+    .eq("slug", identifier)
+    .maybeSingle();
 }

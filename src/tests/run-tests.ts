@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { supabaseAdmin } from "../lib/supabase/admin";
+
 
 // In-memory Mock DB representing table states for testing
 const mockDbStore: Record<string, any[]> = {

@@ -5,141 +5,72 @@ import {
   archivePrivacyPolicy,
   getPrivacyPolicyById,
   listPolicyVersions,
+  getPublishedPrivacyPolicy,
 } from "@/repositories/privacy-policy.repository";
 
-import {
-  privacyPolicyService,
-} from "./privacy-policy.service";
-
-import type {
-  LegalProfile,
-} from "../domain/legal-profile";
-
-
+import { unifiedPolicyComposerService } from "./unified-policy-composer.service";
+import type { LegalProfile } from "../domain/legal-profile";
 
 export class PrivacyDocumentService {
-  create(
-  companyId: string,
-  html: string
-) {
-  return createPrivacyPolicy({
-    company_id: companyId,
-
-    html_content: html,
-  });
-}
-  latest(
-    companyId: string
-  ) {
-    return getLatestPrivacyPolicy(
-      companyId
-    );
+  create(companyId: string, html: string) {
+    return createPrivacyPolicy({
+      company_id: companyId,
+      html_content: html,
+    });
   }
 
-  versions(
-  companyId: string
-) {
-  return listPolicyVersions(
-    companyId
-  );
-}
-
-  archive(
-    companyId: string,
-    id: string
-  ) {
-    return archivePrivacyPolicy(
-      companyId,
-      id
-    );
+  latest(companyId: string) {
+    return getLatestPrivacyPolicy(companyId);
   }
 
-  async restore(
-    companyId: string,
-    id: string
-  ) {
-    const {
-      data,
-      error,
-    } =
-      await getPrivacyPolicyById(
-        companyId,
-        id
-      );
+  published(companyId: string) {
+    return getPublishedPrivacyPolicy(companyId);
+  }
 
-    if (
-      error ||
-      !data ||
-      data.company_id !== companyId
-    ) {
-      throw error ??
-        new Error(
-          "Policy not found or unauthorized"
-        );
+  versions(companyId: string) {
+    return listPolicyVersions(companyId);
+  }
+
+  archive(companyId: string, id: string) {
+    return archivePrivacyPolicy(companyId, id);
+  }
+
+  async restore(companyId: string, id: string) {
+    const { data, error } = await getPrivacyPolicyById(companyId, id);
+
+    if (error || !data || data.company_id !== companyId) {
+      throw error ?? new Error("Policy not found or unauthorized");
     }
 
-    return updatePrivacyPolicy(
-      companyId,
-      id,
-      {
-        archived: false,
-        status: "published",
-        published_at:
-          new Date().toISOString(),
-      }
-    );
+    return updatePrivacyPolicy(companyId, id, {
+      archived: false,
+      status: "published",
+      published_at: new Date().toISOString(),
+    });
   }
 
-  async publish(
-    companyId: string,
-    id: string
-  ) {
+  async publish(companyId: string, id: string) {
     const { data, error } = await getPrivacyPolicyById(companyId, id);
     if (error || !data || data.company_id !== companyId) {
       throw new Error("Policy not found or unauthorized");
     }
 
     if (!data.reviewed_by_counsel) {
-      throw new Error("Policy cannot be published without legal counsel review approval (reviewed_by_counsel must be true)");
+      throw new Error(
+        "Policy cannot be published without legal counsel review approval (reviewed_by_counsel must be true)"
+      );
     }
 
-    return updatePrivacyPolicy(
-      companyId,
-      id,
-      {
-        status: "published",
-        published_at:
-          new Date().toISOString(),
-      }
-    );
+    return updatePrivacyPolicy(companyId, id, {
+      status: "published",
+      published_at: new Date().toISOString(),
+    });
   }
 
-  async generate(
-  companyId: string,
-  profile: LegalProfile
-) {
-  const policy =
-    privacyPolicyService.generate(
-      profile
-    );
-
-  const html =
-    policy.sections
-      .map(
-        (section) => `
-<h2>${section.title}</h2>
-<p>${section.content}</p>
-`
-      )
-      .join("\n");
-
-
-  return this.create(
-    companyId,
-    html
-  );
-}
+  async generate(companyId: string, _profile?: LegalProfile) {
+    const html = await unifiedPolicyComposerService.generatePrivacyPolicy(companyId);
+    return getLatestPrivacyPolicy(companyId);
+  }
 }
 
-export const privacyDocumentService =
-  new PrivacyDocumentService();
+export const privacyDocumentService = new PrivacyDocumentService();

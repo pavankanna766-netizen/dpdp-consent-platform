@@ -69,4 +69,19 @@ This document tracks all features, schema migrations, and bug fixes applied to P
 *   **Why:** Replaces all mock elements with a production-ready, highly secure checkout workflow for public deployment.
 
 
+## 📅 July 21, 2026
+
+### PR1: Multi-Tenant Isolation Hardening
+*   **What changed:**
+    1. Hardened `SECURITY DEFINER` functions (`get_audit_stats`, `get_consent_stats`) to include `is_company_member()` authorization checks before returning data. Callers who aren't members of the requested company now receive zeroed results.
+    2. Revoked `EXECUTE` permission on sensitive RPC functions from `anon` and `authenticated` Supabase roles.
+    3. Replaced dangerous `with check (true)` RLS INSERT policies on `consents` and `dsar_requests` with policies that validate `company_id` references a real company (and for consents, that `template_id` belongs to that company and is published).
+    4. Added `BEFORE INSERT` tenant validation triggers on `consents` and `dsar_requests` as defense-in-depth against application-layer bugs.
+    5. Revoked direct `INSERT/UPDATE/DELETE` permissions on `audit_logs`, `billing_transactions`, and `breach_incidents` from `anon` and `authenticated` roles — these tables are only writable via the service-role key.
+    6. Fixed `getScanSummary` in `scanner.repository.ts` to verify scan ownership before querying child tables (detections/findings), preventing cross-tenant data leakage via scan ID enumeration.
+    7. Added cross-tenant isolation test suite with enhanced mock client that validates `.eq()` filter chains across 11 repository domains.
+*   **Why:** The highest-risk area in a multi-tenant compliance product. RLS policies existed but were bypassed by universal use of the service-role key. Public insert policies allowed arbitrary company impersonation via direct Supabase API. The defense-in-depth approach (triggers + tightened RLS + app-layer filtering + tests) ensures that a single missed filter cannot cause cross-tenant data leakage.
+*   **Assumptions:** Keeping `supabaseAdmin` (service-role key) for server-side operations rather than implementing Clerk JWT forwarding to Supabase. The defense-in-depth approach is pragmatic given the existing architecture.
+
+
 

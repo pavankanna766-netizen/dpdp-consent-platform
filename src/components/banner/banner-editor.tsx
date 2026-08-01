@@ -7,10 +7,6 @@ import type {
 } from "@/modules/banner";
 
 import {
-  embedService,
-} from "@/modules/banner";
-
-import {
   BannerSettings,
 } from "./banner-settings";
 

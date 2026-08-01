@@ -13,37 +13,21 @@ export const analyticsTrackers: TrackerDefinition[] = [
       "_gid",
       "_gat",
       "_ga_*",
+      "AMP_TOKEN",
     ],
     scripts: [
       "google-analytics.com",
-      "googletagmanager.com",
       "gtag/js",
+      "ga.js",
+      "analytics.js",
     ],
     domains: [
       "google-analytics.com",
-      "googletagmanager.com",
+      "region1.google-analytics.com",
+      "analytics.google.com",
     ],
     description:
-      "Google Analytics website analytics.",
-  },
-
-  {
-    id: "google-analytics-4",
-    provider: "Google Analytics 4",
-    category: "analytics",
-    requiresConsent: true,
-    cookies: [
-      "_ga",
-      "_ga_*",
-    ],
-    scripts: [
-      "gtag/js",
-    ],
-    domains: [
-      "google-analytics.com",
-    ],
-    description:
-      "Google Analytics 4 measurement.",
+      "Google Analytics measurement platform.",
   },
 
   {
@@ -73,15 +57,19 @@ export const analyticsTrackers: TrackerDefinition[] = [
     cookies: [
       "s_cc",
       "s_sq",
+      "s_vi",
       "AMCV_*",
     ],
     scripts: [
       "omniture",
       "appmeasurement",
+      "omtrdc.net",
+      "adobedtm.com",
     ],
     domains: [
       "2o7.net",
       "omtrdc.net",
+      "adobedtm.com",
     ],
     description:
       "Adobe Analytics platform.",
@@ -100,8 +88,8 @@ export const analyticsTrackers: TrackerDefinition[] = [
       "piwik.js",
     ],
     domains: [
-      "matomo",
-      "piwik",
+      "matomo.php",
+      "piwik.php",
     ],
     description:
       "Matomo self-hosted analytics.",
@@ -111,7 +99,7 @@ export const analyticsTrackers: TrackerDefinition[] = [
     id: "plausible",
     provider: "Plausible",
     category: "analytics",
-    requiresConsent: true,
+    requiresConsent: false,
     cookies: [],
     scripts: [
       "plausible.io/js",
@@ -127,7 +115,7 @@ export const analyticsTrackers: TrackerDefinition[] = [
     id: "fathom",
     provider: "Fathom",
     category: "analytics",
-    requiresConsent: true,
+    requiresConsent: false,
     cookies: [],
     scripts: [
       "cdn.usefathom.com",
@@ -152,9 +140,10 @@ export const analyticsTrackers: TrackerDefinition[] = [
     ],
     domains: [
       "mixpanel.com",
+      "api.mixpanel.com",
     ],
     description:
-      "Product analytics.",
+      "Product analytics platform.",
   },
 
   {
@@ -170,9 +159,10 @@ export const analyticsTrackers: TrackerDefinition[] = [
     ],
     domains: [
       "amplitude.com",
+      "api.amplitude.com",
     ],
     description:
-      "Amplitude analytics.",
+      "Behavior analytics platform.",
   },
 
   {
@@ -188,6 +178,7 @@ export const analyticsTrackers: TrackerDefinition[] = [
     ],
     domains: [
       "segment.io",
+      "api.segment.io",
     ],
     description:
       "Segment customer data platform.",
@@ -224,9 +215,10 @@ export const analyticsTrackers: TrackerDefinition[] = [
     ],
     domains: [
       "posthog.com",
+      "app.posthog.com",
     ],
     description:
-      "PostHog analytics.",
+      "Open-source product analytics.",
   },
 
   {
@@ -243,6 +235,7 @@ export const analyticsTrackers: TrackerDefinition[] = [
     ],
     domains: [
       "clarity.ms",
+      "c.clarity.ms",
     ],
     description:
       "Microsoft Clarity session analytics.",
@@ -257,169 +250,18 @@ export const analyticsTrackers: TrackerDefinition[] = [
       "_hjSessionUser_*",
       "_hjFirstSeen",
       "_hjIncludedInSessionSample_*",
+      "_hj*",
     ],
     scripts: [
       "static.hotjar.com",
     ],
     domains: [
       "hotjar.com",
+      "script.hotjar.com",
     ],
     description:
       "Hotjar heatmaps and recordings.",
   },
-
-  {
-  id: "adobe-analytics",
-
-  provider: "Adobe Analytics",
-
-  category: "analytics",
-
-  requiresConsent: true,
-
-  cookies: [
-    "s_cc",
-    "s_sq",
-    "s_vi",
-  ],
-
-  scripts: [
-    "omtrdc.net",
-    "adobedtm.com",
-  ],
-
-  domains: [
-    "omtrdc.net",
-    "adobedtm.com",
-  ],
-
-  description:
-    "Adobe Analytics measurement platform.",
-},
-
-{
-  id: "mixpanel",
-
-  provider: "Mixpanel",
-
-  category: "analytics",
-
-  requiresConsent: true,
-
-  cookies: [
-    "mp_*",
-  ],
-
-  scripts: [
-    "cdn.mxpnl.com",
-  ],
-
-  domains: [
-    "mixpanel.com",
-  ],
-
-  description:
-    "Product analytics platform.",
-},
-
-{
-  id: "amplitude",
-
-  provider: "Amplitude",
-
-  category: "analytics",
-
-  requiresConsent: true,
-
-  cookies: [
-    "amp_*",
-  ],
-
-  scripts: [
-    "cdn.amplitude.com",
-  ],
-
-  domains: [
-    "amplitude.com",
-  ],
-
-  description:
-    "Behavior analytics platform.",
-},
-
-{
-  id: "posthog",
-
-  provider: "PostHog",
-
-  category: "analytics",
-
-  requiresConsent: true,
-
-  cookies: [
-    "ph_*",
-  ],
-
-  scripts: [
-    "posthog.js",
-  ],
-
-  domains: [
-    "posthog.com",
-  ],
-
-  description:
-    "Open-source product analytics.",
-},
-
-{
-  id: "plausible",
-
-  provider: "Plausible",
-
-  category: "analytics",
-
-  requiresConsent: false,
-
-  cookies: [],
-
-  scripts: [
-    "plausible.io/js",
-  ],
-
-  domains: [
-    "plausible.io",
-  ],
-
-  description:
-    "Privacy-focused analytics.",
-},
-
-{
-  id: "matomo",
-
-  provider: "Matomo",
-
-  category: "analytics",
-
-  requiresConsent: true,
-
-  cookies: [
-    "_pk_id*",
-    "_pk_ses*",
-  ],
-
-  scripts: [
-    "matomo.js",
-  ],
-
-  domains: [
-    "matomo",
-  ],
-
-  description:
-    "Self-hosted web analytics.",
-},
 
   {
     id: "crazy-egg",
@@ -438,5 +280,21 @@ export const analyticsTrackers: TrackerDefinition[] = [
     ],
     description:
       "Crazy Egg analytics.",
+  },
+
+  {
+    id: "cloudflare-insights",
+    provider: "Cloudflare Web Analytics",
+    category: "analytics",
+    requiresConsent: false,
+    cookies: [],
+    scripts: [
+      "static.cloudflareinsights.com",
+    ],
+    domains: [
+      "cloudflareinsights.com",
+    ],
+    description:
+      "Privacy-first Cloudflare web analytics.",
   },
 ];

@@ -25,6 +25,29 @@ export const marketingTrackers: TrackerDefinition[] = [
   },
 
   {
+    id: "google-ads",
+    provider: "Google Ads",
+    category: "marketing",
+    requiresConsent: true,
+    cookies: [
+      "_gcl_au",
+      "_gcl_aw",
+      "_gcl_dc",
+    ],
+    scripts: [
+      "googleadservices.com",
+      "pagead2.googlesyndication.com",
+    ],
+    domains: [
+      "googleadservices.com",
+      "google.com/pagead",
+      "doubleclick.net",
+    ],
+    description:
+      "Google Ads conversion and remarketing tracking.",
+  },
+
+  {
     id: "bing-uet",
     provider: "Microsoft Bing UET",
     category: "marketing",
@@ -52,6 +75,8 @@ export const marketingTrackers: TrackerDefinition[] = [
       "li_gc",
       "li_sugr",
       "UserMatchHistory",
+      "bcookie",
+      "bscookie",
     ],
     scripts: [
       "snap.licdn.com",
@@ -59,6 +84,7 @@ export const marketingTrackers: TrackerDefinition[] = [
     domains: [
       "px.ads.linkedin.com",
       "snap.licdn.com",
+      "linkedin.com",
     ],
     description:
       "LinkedIn conversion tracking.",
@@ -113,6 +139,7 @@ export const marketingTrackers: TrackerDefinition[] = [
     ],
     scripts: [
       "s.pinimg.com",
+      "ct.pinterest.com",
     ],
     domains: [
       "ct.pinterest.com",
@@ -123,7 +150,7 @@ export const marketingTrackers: TrackerDefinition[] = [
 
   {
     id: "snapchat-pixel",
-    provider: "Snap Pixel",
+    provider: "Snapchat Pixel",
     category: "marketing",
     requiresConsent: true,
     cookies: [
@@ -144,13 +171,16 @@ export const marketingTrackers: TrackerDefinition[] = [
     provider: "Reddit Pixel",
     category: "marketing",
     requiresConsent: true,
-    cookies: [],
+    cookies: [
+      "_rdt_uuid",
+    ],
     scripts: [
       "pixel.redditmedia.com",
     ],
     domains: [
       "redditstatic.com",
       "redditmedia.com",
+      "pixel.redditmedia.com",
     ],
     description:
       "Reddit advertising conversion tracking.",
@@ -164,13 +194,17 @@ export const marketingTrackers: TrackerDefinition[] = [
     cookies: [
       "__hstc",
       "hubspotutk",
+      "__hssrc",
+      "__hssc",
     ],
     scripts: [
       "js.hs-scripts.com",
+      "js.hs-analytics.net",
     ],
     domains: [
       "hs-scripts.com",
       "hubspot.com",
+      "hs-analytics.net",
     ],
     description:
       "HubSpot marketing automation.",
@@ -194,131 +228,4 @@ export const marketingTrackers: TrackerDefinition[] = [
     description:
       "Mailchimp marketing platform.",
   },
-
-{
-  id: "google-ads",
-
-  provider: "Google Ads",
-
-  category: "marketing",
-
-  requiresConsent: true,
-
-  cookies: [
-    "_gcl_au",
-  ],
-
-  scripts: [
-    "googleadservices.com",
-  ],
-
-  domains: [
-    "googleadservices.com",
-  ],
-
-  description:
-    "Google Ads conversion tracking.",
-},
-
-{
-  id: "bing-ads",
-
-  provider: "Microsoft Advertising",
-
-  category: "marketing",
-
-  requiresConsent: true,
-
-  cookies: [
-    "_uetvid",
-    "_uetsid",
-  ],
-
-  scripts: [
-    "bat.bing.com",
-  ],
-
-  domains: [
-    "bat.bing.com",
-  ],
-
-  description:
-    "Microsoft Ads tracking.",
-},
-
-{
-  id: "snapchat-pixel",
-
-  provider: "Snapchat Pixel",
-
-  category: "marketing",
-
-  requiresConsent: true,
-
-  cookies: [
-    "_scid",
-  ],
-
-  scripts: [
-    "sc-static.net",
-  ],
-
-  domains: [
-    "tr.snapchat.com",
-  ],
-
-  description:
-    "Snapchat advertising pixel.",
-},
-
-{
-  id: "pinterest-tag",
-
-  provider: "Pinterest Tag",
-
-  category: "marketing",
-
-  requiresConsent: true,
-
-  cookies: [
-    "_pin_unauth",
-  ],
-
-  scripts: [
-    "ct.pinterest.com",
-  ],
-
-  domains: [
-    "ct.pinterest.com",
-  ],
-
-  description:
-    "Pinterest conversion tracking.",
-},
-
-{
-  id: "reddit-pixel",
-
-  provider: "Reddit Pixel",
-
-  category: "marketing",
-
-  requiresConsent: true,
-
-  cookies: [
-    "_rdt_uuid",
-  ],
-
-  scripts: [
-    "pixel.redditmedia.com",
-  ],
-
-  domains: [
-    "pixel.redditmedia.com",
-  ],
-
-  description:
-    "Reddit advertising pixel.",
-},
-
 ];

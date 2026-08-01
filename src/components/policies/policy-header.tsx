@@ -1,15 +1,3 @@
-import {
-  GeneratePolicyButton,
-} from "./generate-policy-button";
-
-import {
-  PublishPolicyButton,
-} from "./publish-policy-button";
-
-import {
-  CopyPolicyLink,
-} from "./copy-policy-link";
-
 interface Props {
   policy: {
     id: string;
@@ -23,7 +11,6 @@ interface Props {
 
 export function PolicyHeader({
   policy,
-  companySlug,
   actions
 }: Props) {
   return (

@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { logger } from "@/platform/logger";
 import type { RateLimitResult, RateLimitStore } from "./types";
 
 export class SupabaseRateLimitStore implements RateLimitStore {
@@ -13,17 +14,23 @@ export class SupabaseRateLimitStore implements RateLimitStore {
       p_window_ms: windowMs,
     });
 
-    if (error || !data || (data as any[]).length === 0) {
-      console.error("[RateLimit] Database rate limit consume failed, falling back to allow:", error);
-      // Fallback in case of database connectivity issues
+    interface RateLimitRow {
+      allowed: boolean;
+      remaining: number;
+      reset_at: number;
+    }
+
+    if (error || !data || (data as unknown as RateLimitRow[]).length === 0) {
+      const isDev = process.env.NODE_ENV !== "production";
+      logger.error("[RateLimit] Database rate limit consume failed, falling back to", { isDev, error });
       return {
-        allowed: true,
-        remaining: limit,
+        allowed: isDev,
+        remaining: isDev ? limit : 0,
         resetAt: Date.now() + windowMs,
       };
     }
 
-    const result = (data as any[])[0];
+    const result = (data as unknown as RateLimitRow[])[0];
     return {
       allowed: result.allowed,
       remaining: result.remaining,

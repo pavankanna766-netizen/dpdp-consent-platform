@@ -7,94 +7,50 @@ import {
   getCookiePolicyById,
 } from "@/repositories/cookie-policy.repository";
 
-import {
-  cookiePolicyGeneratorService,
-} from "./cookie-policy-generator.service";
+import { unifiedPolicyComposerService } from "./unified-policy-composer.service";
 
 export class CookiePolicyDocumentService {
   async generate(
-    scanId: string,
+    _scanId: string,
     company: {
       id: string;
       name: string;
       website: string;
     }
   ) {
-    const policy =
-      await cookiePolicyGeneratorService.generate(
-        company.id,
-        scanId,
-        {
-          name: company.name,
-          website: company.website,
-        }
-      );
-
-    const html =
-      policy.sections
-        .map(
-          (section) => `
-<h2>${section.title}</h2>
-<p>${section.content}</p>
-`
-        )
-        .join("\n");
-
-    return createCookiePolicy({
-      company_id: company.id,
-      html_content: html,
-    });
+    const html = await unifiedPolicyComposerService.generateCookiePolicy(company.id);
+    return latestCookiePolicy(company.id);
   }
 
-  latest(
-    companyId: string
-  ) {
-    return latestCookiePolicy(
-      companyId
-    );
+  latest(companyId: string) {
+    return latestCookiePolicy(companyId);
   }
 
-  async publish(
-    companyId: string,
-    id: string
-  ) {
+  async publish(companyId: string, id: string) {
     const { data, error } = await getCookiePolicyById(companyId, id);
     if (error || !data || data.company_id !== companyId) {
       throw new Error("Policy not found or unauthorized");
     }
 
     if (!data.reviewed_by_counsel) {
-      throw new Error("Policy cannot be published without legal counsel review approval (reviewed_by_counsel must be true)");
+      throw new Error(
+        "Policy cannot be published without legal counsel review approval (reviewed_by_counsel must be true)"
+      );
     }
 
-    return updateCookiePolicy(
-      companyId,
-      id,
-      {
-        status: "published",
-        published_at:
-          new Date().toISOString(),
-      }
-    );
+    return updateCookiePolicy(companyId, id, {
+      status: "published",
+      published_at: new Date().toISOString(),
+    });
   }
 
-versions(
-  companyId: string
-) {
-  return listCookiePolicyVersions(
-    companyId
-  );
+  versions(companyId: string) {
+    return listCookiePolicyVersions(companyId);
+  }
+
+  published(companyId: string) {
+    return getPublishedCookiePolicy(companyId);
+  }
 }
 
-published(
-  companyId: string
-) {
-  return getPublishedCookiePolicy(
-    companyId
-  );
-}
-
-}
-
-export const cookiePolicyDocumentService =
-  new CookiePolicyDocumentService();
+export const cookiePolicyDocumentService = new CookiePolicyDocumentService();

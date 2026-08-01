@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { logger } from "@/platform/logger";
 import type { IdempotencyResult, IdempotencyStore } from "./types";
 
 export class SupabaseIdempotencyStore implements IdempotencyStore {
@@ -33,12 +34,12 @@ export class SupabaseIdempotencyStore implements IdempotencyStore {
       .from("idempotency_keys")
       .upsert({
         key,
-        response: value as any,
+        response: value as never,
         expires_at: expiresAtStr,
       });
 
     if (insertError) {
-      console.error("[Idempotency] Failed to save idempotency key:", insertError);
+      logger.error("[Idempotency] Failed to save idempotency key:", insertError);
     }
 
     return {

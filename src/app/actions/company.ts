@@ -30,5 +30,8 @@ export async function updateCompanyAction(values: {
   }
 
   revalidatePath("/dashboard/trust");
+  if (result.data?.slug) {
+    revalidatePath(`/p/${result.data.slug}/trust`);
+  }
   return result.data;
 }

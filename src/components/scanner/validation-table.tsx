@@ -31,7 +31,7 @@ export function ValidationTable({
                 <td className="py-4 pr-4 font-medium text-gray-900">
                   {site.name}
                 </td>
-                <td className="py-4 px-4 text-gray-505 font-mono text-xs">
+                <td className="py-4 px-4 text-gray-500 font-mono text-xs">
                   {site.url}
                 </td>
                 <td className="py-4 pl-4">

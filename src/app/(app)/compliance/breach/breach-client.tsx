@@ -42,11 +42,15 @@ export function BreachIncidentClient({
     return d.toISOString().slice(0, 16);
   });
 
-  // Simple countdown tick
-  const [, setTick] = useState(0);
+  // Simple countdown tick using clean state (initially 0 on server/hydration, updated on client mount)
+  const [now, setNow] = useState<number>(0);
   useEffect(() => {
-    const timer = setInterval(() => setTick((t) => t + 1), 1000);
-    return () => clearInterval(timer);
+    const timeout = setTimeout(() => setNow(Date.now()), 0);
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(timer);
+    };
   }, []);
 
   const handleLogIncident = (e: React.FormEvent) => {
@@ -77,7 +81,6 @@ export function BreachIncidentClient({
   // Helper to format countdown timer or elapsed status
   const getTimerDetails = (deadlineStr: string, notifiedAtStr: string | null) => {
     const deadline = new Date(deadlineStr).getTime();
-    const now = Date.now();
 
     if (notifiedAtStr) {
       const notifiedTime = new Date(notifiedAtStr).getTime();
@@ -86,6 +89,14 @@ export function BreachIncidentClient({
         label: `Reported in ${inTime ? "time" : "late"}`,
         status: inTime ? "compliant" : "missed",
         timeStr: new Date(notifiedAtStr).toLocaleString(),
+      };
+    }
+
+    if (!now) {
+      return {
+        label: "Calculating...",
+        status: "active",
+        timeStr: "--h --m --s",
       };
     }
 

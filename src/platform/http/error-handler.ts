@@ -6,10 +6,17 @@ import {
   internalServerErrorResponse,
 } from "./response";
 
+import { RateLimitError } from "@/platform/errors";
+
 export function handleHttpError(
   error: unknown
 ) {
   if (error instanceof AppError) {
+    const headers: HeadersInit = {};
+    if (error instanceof RateLimitError) {
+      headers["Retry-After"] = String(error.retryAfterSeconds);
+    }
+
     return Response.json(
       {
         success: false,
@@ -18,6 +25,7 @@ export function handleHttpError(
       },
       {
         status: error.status,
+        headers,
       }
     );
   }

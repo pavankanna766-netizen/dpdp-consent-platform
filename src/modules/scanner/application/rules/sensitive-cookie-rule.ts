@@ -21,6 +21,25 @@ const EXCLUDED_TELEMETRY = [
   "mixpanel",     // Mixpanel
   "ga_",          // Google Analytics
   "gid",          // Google Analytics
+  "fbp",          // Meta
+  "fbc",          // Meta
+  "gcl",          // Google Ads
+  "uet",          // Microsoft Bing
+  "pin",          // Pinterest
+  "scid",         // Snapchat
+  "rdt",          // Reddit
+  "hstc",         // HubSpot
+  "hubspot",      // HubSpot
+  "intercom",     // Intercom
+  "zendesk",      // Zendesk
+  "crisp",        // Crisp
+  "tawk",         // Tawk
+  "stripe",       // Stripe
+  "razorpay",     // Razorpay
+  "paddle",       // Paddle
+  "cf_",          // Cloudflare
+  "__cf",         // Cloudflare
+  "google_",      // Google
 ];
 
 export const sensitiveCookieRule: ComplianceRule = {
@@ -36,12 +55,18 @@ export const sensitiveCookieRule: ComplianceRule = {
       (candidate) => {
         const name = candidate.name.toLowerCase();
 
-        // Skip known telemetry/analytics cookies that are client-side set
+        // Skip known telemetry/analytics/tracker cookies that are client-side set
         const isTelemetry = EXCLUDED_TELEMETRY.some((kw) => name.includes(kw));
         if (isTelemetry) return false;
 
         // Skip other common false positives
-        if (name.includes("hjsession") || name.includes("sessionuser") || name.includes("absoluteinprogress")) {
+        if (
+          name.includes("hjsession") ||
+          name.includes("sessionuser") ||
+          name.includes("absoluteinprogress") ||
+          name.includes("analytics") ||
+          name.includes("telemetry")
+        ) {
           return false;
         }
 

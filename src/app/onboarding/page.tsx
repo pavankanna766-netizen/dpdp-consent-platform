@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { ensureCompany } from "@/services/company.service";
+import { getOnboardingState } from "@/services/onboarding.service";
 import { OnboardingWizard } from "@/components/onboarding/wizard";
 
 export default async function OnboardingPage() {
@@ -10,30 +11,14 @@ export default async function OnboardingPage() {
     redirect("/sign-in");
   }
 
-  const company = await ensureCompany(
-    userId,
-    "My Company"
-  );
-
-  if (company.is_onboarded) {
-    redirect("/dashboard");
-  }
+  const company = await ensureCompany(userId, "My Company");
+  const onboardingState = await getOnboardingState(company.id);
 
   return (
-  <main className="min-h-screen bg-slate-50 flex items-center justify-center p-8">
-    <div className="w-full max-w-xl rounded-xl border bg-white p-8 shadow-sm">
-      <h1 className="text-3xl font-bold">
-        Welcome to PrivyStack 👋
-      </h1>
-
-      <p className="mt-2 text-gray-600">
-        Let&apos;s set up your organization.
-      </p>
-
-      <div className="mt-8">
-        <OnboardingWizard />
+    <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6 md:p-12">
+      <div className="w-full max-w-4xl">
+        <OnboardingWizard initialState={onboardingState} />
       </div>
-    </div>
-  </main>
-);
+    </main>
+  );
 }

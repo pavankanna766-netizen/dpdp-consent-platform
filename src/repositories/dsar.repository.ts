@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { stripHtml, sanitizeIdentifier } from "@/platform/security";
 
 export async function createRequest(values: {
   company_id: string;
@@ -6,13 +7,19 @@ export async function createRequest(values: {
   request_type: string;
   description: string | null;
 }) {
+  const sanitizedValues = {
+    ...values,
+    subject_identifier: sanitizeIdentifier(values.subject_identifier),
+    description: values.description ? stripHtml(values.description) : null,
+  };
+
   const slaDueDate = new Date();
   slaDueDate.setDate(slaDueDate.getDate() + 30); // 30-day compliance SLA window
 
   return supabaseAdmin
     .from("dsar_requests")
     .insert({
-      ...values,
+      ...sanitizedValues,
       status: "pending",
       sla_due_date: slaDueDate.toISOString(),
     })

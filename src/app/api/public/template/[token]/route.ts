@@ -17,7 +17,7 @@ import {
   limitPublicBannerRequest,
 } from "@/modules/banner/application/public-http";
 
-const TokenSchema = z.string().uuid("Invalid template token.");
+const TokenSchema = z.string().min(1).max(128).regex(/^[\w-]+$/, "Invalid template token.");
 
 export async function OPTIONS() {
   return publicBannerOptions();

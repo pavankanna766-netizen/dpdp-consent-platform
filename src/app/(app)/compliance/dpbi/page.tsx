@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Info, HelpCircle, ShieldAlert, CheckCircle, Scale } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Info, ShieldAlert, CheckCircle, Scale } from "lucide-react";
 
 export default function DpbiGuidancePage() {
   const [userCount, setUserCount] = useState<number>(50000);
@@ -167,7 +166,7 @@ export default function DpbiGuidancePage() {
               <h4 className="text-xs font-semibold text-indigo-900 uppercase tracking-wider">India Compliance Note</h4>
             </div>
             <p className="text-xs text-indigo-800 leading-relaxed font-medium">
-              Failing to satisfy standard fiduciary duties (e.g. data breach or processing minor's data without parental consent) carries statutory penalties of up to **₹250 Crore** under Schedule 1 of the DPDP Act 2023.
+              Failing to satisfy standard fiduciary duties (e.g. data breach or processing minor&apos;s data without parental consent) carries statutory penalties of up to **₹250 Crore** under Schedule 1 of the DPDP Act 2023.
             </p>
           </div>
         </div>

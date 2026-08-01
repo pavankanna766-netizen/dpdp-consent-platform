@@ -5,11 +5,22 @@ export function createCookiePolicy(
   values: {
     company_id: string;
     html_content: string;
+    version?: number;
+    status?: string;
+    categories?: unknown;
+    reviewed_by_counsel?: boolean;
   }
 ) {
   return supabaseAdmin
     .from("cookie_policies")
-    .insert(values)
+    .insert({
+      company_id: values.company_id,
+      html_content: values.html_content,
+      version: values.version,
+      status: values.status || "draft",
+      categories: values.categories,
+      reviewed_by_counsel: values.reviewed_by_counsel ?? false,
+    })
     .select()
     .single();
 }
@@ -65,7 +76,9 @@ export const getPublishedCookiePolicy = cache(async function (
     .select("*")
     .eq("company_id", companyId)
     .eq("status", "published")
-    .single();
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 });
 
 export const getCookiePolicyById = cache(async function (

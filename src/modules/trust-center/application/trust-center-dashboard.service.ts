@@ -1,55 +1,16 @@
 import {
-  trustCenterService,
-} from "./trust-center.service";
+  dashboardAggregationService,
+} from "./dashboard-aggregation.service";
 
-import {
-  privacyDocumentService,
-  cookiePolicyDocumentService,
-} from "@/modules/policies";
-
-import {
-  latestSummaryService,
-} from "@/modules/scanner";
+import type {
+  TrustCenterDashboard,
+} from "../domain/trust-center-dashboard";
 
 export class TrustCenterDashboardService {
   async get(
     companyId: string
-  ) {
-    const [
-      trustCenter,
-      latestSummary,
-      privacy,
-      cookies,
-    ] =
-      await Promise.all([
-        trustCenterService.ensure(
-          companyId
-        ),
-
-        latestSummaryService.get(
-          companyId
-        ),
-
-        privacyDocumentService.latest(
-          companyId
-        ),
-
-        cookiePolicyDocumentService.latest(
-          companyId
-        ),
-      ]);
-
-    return {
-      trustCenter,
-
-      latestSummary,
-
-      privacy:
-        privacy.data,
-
-      cookies:
-        cookies.data,
-    };
+  ): Promise<TrustCenterDashboard> {
+    return dashboardAggregationService.getAggregatedData(companyId);
   }
 }
 

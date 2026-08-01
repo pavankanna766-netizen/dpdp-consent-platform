@@ -78,7 +78,8 @@ export function internalServerErrorResponse() {
 }
 
 export function tooManyRequestsResponse(
-  message = "Too many requests."
+  message = "Too many requests.",
+  retryAfterSeconds = 60
 ) {
   return NextResponse.json(
     {
@@ -88,6 +89,9 @@ export function tooManyRequestsResponse(
     },
     {
       status: 429,
+      headers: {
+        "Retry-After": String(retryAfterSeconds),
+      },
     }
   );
 }

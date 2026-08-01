@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Terminal, Code2, BookOpen, Key, Link2, CheckCircle2, Copy } from "lucide-react";
+import { Terminal, BookOpen, Link2, CheckCircle2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const SNIPPETS = {

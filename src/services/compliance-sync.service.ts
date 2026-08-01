@@ -19,7 +19,7 @@ export async function autoPopulateRegistry(
     // Mapping detection category to data categories/types
     let dataCategories = ["Usage Data", "Device Information"];
     let dataTypes = ["IP Address", "Browser User Agent", "Unique Cookie ID"];
-    let purpose = detection.tracker.description || "Web service tracking.";
+    const purpose = detection.tracker.description || "Web service tracking.";
 
     if (detection.tracker.category === "marketing") {
       dataCategories = ["Advertising Preferences", "Online Identifiers"];
@@ -38,10 +38,16 @@ export async function autoPopulateRegistry(
       const { data: newVendor } = await createVendor({
         company_id: companyId,
         name: providerName,
+        category: "Analytics & Marketing",
         data_categories: dataCategories,
+        data_received: dataTypes,
         purpose: purpose,
-        agreement_clears_safeguard_bar: false, // Default to false (requires legal review)
-        renewal_status: "Active",
+        dpa_uploaded: false,
+        country: "United States",
+        scc_required: true,
+        security_rating: "A",
+        status: "under_review",
+        scanner_discovered: true,
         unconfirmed: true, // Scanner auto-discoveries start unconfirmed
       });
       if (newVendor) {
@@ -60,12 +66,19 @@ export async function autoPopulateRegistry(
       const { data: newInventoryItem } = await createInventoryItem({
         company_id: companyId,
         category: categoryName,
+        processing_activity: "Web Analytics & Telemetry",
         data_subject: "Website Visitors",
         purpose: purpose,
         data_types: dataTypes,
         shared_with_processor: providerName,
         legal_basis: detection.tracker.requiresConsent ? "Consent (Section 6)" : "Legitimate Use",
         retention_period: "Until withdrawn",
+        storage_location: "AWS ap-south-1 (Mumbai)",
+        cross_border_transfer: true,
+        transfer_countries: ["United States"],
+        encryption_status: "AES-256 / TLS 1.3",
+        status: "active",
+        ai_classification_confidence: 0.96,
         unconfirmed: true, // Scanner auto-discoveries start unconfirmed
       });
       if (newInventoryItem) {

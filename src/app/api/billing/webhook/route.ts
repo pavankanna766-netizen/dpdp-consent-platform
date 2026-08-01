@@ -74,7 +74,8 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Webhook processing error" }, { status: 500 });
+  } catch (error) {
+    const err = error as Error;
+    return NextResponse.json({ error: err.message || "Webhook processing error" }, { status: 500 });
   }
 }
