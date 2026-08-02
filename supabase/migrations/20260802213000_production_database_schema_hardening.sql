@@ -59,109 +59,115 @@ END $$;
 -- ----------------------------------------------------------------------------
 -- 3. COMPOSITE & HIGH-PERFORMANCE INDEXES
 -- ----------------------------------------------------------------------------
--- Consent Records & Audit Logs
-CREATE INDEX IF NOT EXISTS idx_consent_records_company_created 
-  ON consent_records (company_id, created_at DESC);
+-- Consents & Audit Logs
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'consents') THEN
+    CREATE INDEX IF NOT EXISTS idx_consents_company_created ON consents (company_id, created_at DESC);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_audit_logs_company_created 
-  ON audit_logs (company_id, created_at DESC);
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_logs') THEN
+    CREATE INDEX IF NOT EXISTS idx_audit_logs_company_created ON audit_logs (company_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_audit_logs_company_event ON audit_logs (company_id, event_type, created_at DESC);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_audit_logs_company_event 
-  ON audit_logs (company_id, event_type, created_at DESC);
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'dsar_requests') THEN
+    CREATE INDEX IF NOT EXISTS idx_dsar_requests_company_status ON dsar_requests (company_id, status, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_dsar_sla_pending ON dsar_requests (sla_due_date) WHERE status = 'pending';
+  END IF;
 
--- DSAR Requests & SLA Performance
-CREATE INDEX IF NOT EXISTS idx_dsar_requests_company_status 
-  ON dsar_requests (company_id, status, created_at DESC);
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'vendor_registry') THEN
+    CREATE INDEX IF NOT EXISTS idx_vendor_registry_company_status ON vendor_registry (company_id, status);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_dsar_sla_pending 
-  ON dsar_requests (sla_due_date) 
-  WHERE status = 'pending';
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'data_inventory') THEN
+    CREATE INDEX IF NOT EXISTS idx_data_inventory_company_category ON data_inventory (company_id, category);
+  END IF;
 
--- Vendor Registry & Data Inventory
-CREATE INDEX IF NOT EXISTS idx_vendor_registry_company_status 
-  ON vendor_registry (company_id, status);
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'webhook_deliveries') THEN
+    CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_subscription ON webhook_deliveries (company_id, subscription_id, created_at DESC);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_data_inventory_company_category 
-  ON data_inventory (company_id, category);
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'job_queue') THEN
+    CREATE INDEX IF NOT EXISTS idx_job_queue_scheduled ON job_queue (scheduled_at, status) WHERE status = 'queued';
+  END IF;
 
--- Webhooks & Job Queue
-CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_subscription 
-  ON webhook_deliveries (company_id, subscription_id, created_at DESC);
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'notification_logs') THEN
+    CREATE INDEX IF NOT EXISTS idx_notification_logs_company ON notification_logs (company_id, created_at DESC);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_job_queue_scheduled 
-  ON job_queue (scheduled_at, status) 
-  WHERE status = 'queued';
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'billing_transactions') THEN
+    CREATE INDEX IF NOT EXISTS idx_billing_tx_company ON billing_transactions (company_id, created_at DESC);
+  END IF;
 
--- Notifications, Billing & Breach Incidents
-CREATE INDEX IF NOT EXISTS idx_notification_logs_company 
-  ON notification_logs (company_id, created_at DESC);
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'breach_incidents') THEN
+    CREATE INDEX IF NOT EXISTS idx_breach_incidents_company ON breach_incidents (company_id, created_at DESC);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_billing_tx_company 
-  ON billing_transactions (company_id, created_at DESC);
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'document_signatures') THEN
+    CREATE INDEX IF NOT EXISTS idx_document_signatures_approval ON document_signatures (company_id, approval_id);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_breach_incidents_company 
-  ON breach_incidents (company_id, created_at DESC);
-
--- Digital Signatures & Approvals
-CREATE INDEX IF NOT EXISTS idx_document_signatures_approval 
-  ON document_signatures (company_id, approval_id);
-
-CREATE INDEX IF NOT EXISTS idx_api_keys_active 
-  ON api_keys (api_key) 
-  WHERE is_active = true;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'api_keys') THEN
+    CREATE INDEX IF NOT EXISTS idx_api_keys_active ON api_keys (api_key) WHERE is_active = true;
+  END IF;
+END $$;
 
 -- ----------------------------------------------------------------------------
 -- 4. JSONB GIN INDEXES FOR DYNAMIC QUERIES
 -- ----------------------------------------------------------------------------
-CREATE INDEX IF NOT EXISTS idx_audit_logs_payload_gin 
-  ON audit_logs USING gin (payload);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_logs') THEN
+    CREATE INDEX IF NOT EXISTS idx_audit_logs_payload_gin ON audit_logs USING gin (payload);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_notification_prefs_gin 
-  ON notification_preferences USING gin (preferences);
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'notification_preferences') THEN
+    CREATE INDEX IF NOT EXISTS idx_notification_prefs_gin ON notification_preferences USING gin (preferences);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_company_settings_consent_gin 
-  ON company_settings USING gin (consent);
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'company_settings') THEN
+    CREATE INDEX IF NOT EXISTS idx_company_settings_consent_gin ON company_settings USING gin (consent);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_legal_docs_sections_gin 
-  ON legal_documents USING gin (sections);
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'legal_documents') THEN
+    CREATE INDEX IF NOT EXISTS idx_legal_docs_sections_gin ON legal_documents USING gin (sections);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_payload_gin 
-  ON webhook_deliveries USING gin (payload);
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'webhook_deliveries') THEN
+    CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_payload_gin ON webhook_deliveries USING gin (payload);
+  END IF;
+END $$;
 
 -- ----------------------------------------------------------------------------
 -- 5. CHECK CONSTRAINTS FOR DATA INTEGRITY
 -- ----------------------------------------------------------------------------
 DO $$
 BEGIN
-  -- DSAR Status Check
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'dsar_requests') THEN
     ALTER TABLE dsar_requests DROP CONSTRAINT IF EXISTS chk_dsar_status;
     ALTER TABLE dsar_requests ADD CONSTRAINT chk_dsar_status 
       CHECK (status IN ('pending', 'in_progress', 'completed', 'rejected'));
   END IF;
 
-  -- Breach Affected Users Check
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'breach_incidents') THEN
     ALTER TABLE breach_incidents DROP CONSTRAINT IF EXISTS chk_breach_affected_users;
     ALTER TABLE breach_incidents ADD CONSTRAINT chk_breach_affected_users 
       CHECK (affected_users >= 0);
   END IF;
 
-  -- Billing Transaction Amount Check
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'billing_transactions') THEN
     ALTER TABLE billing_transactions DROP CONSTRAINT IF EXISTS chk_billing_tx_amount;
     ALTER TABLE billing_transactions ADD CONSTRAINT chk_billing_tx_amount 
       CHECK (amount >= 0);
   END IF;
 
-  -- Vendor Security Rating Check
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'vendor_registry') THEN
     ALTER TABLE vendor_registry DROP CONSTRAINT IF EXISTS chk_vendor_rating;
     ALTER TABLE vendor_registry ADD CONSTRAINT chk_vendor_rating 
       CHECK (security_rating IN ('A+', 'A', 'B', 'C', 'F'));
   END IF;
 
-  -- Notification Status Check
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'notification_logs') THEN
     ALTER TABLE notification_logs DROP CONSTRAINT IF EXISTS chk_notification_status;
     ALTER TABLE notification_logs ADD CONSTRAINT chk_notification_status 
@@ -177,7 +183,7 @@ DECLARE
   t text;
   tbls text[] := ARRAY[
     'cookie_banners',
-    'consent_records',
+    'consents',
     'consent_templates',
     'privacy_policies',
     'cookie_policies',
@@ -213,13 +219,3 @@ BEGIN
     END IF;
   END LOOP;
 END $$;
-
--- ----------------------------------------------------------------------------
--- 7. AUDIT LOG HIGH-VOLUME PARTITIONING RECOMMENDATION (DOCUMENTATION)
--- ----------------------------------------------------------------------------
--- RECOMMENDATION FOR PRODUCTION AUDIT LOG SCALING (>10M rows):
--- Range partition `audit_logs` by `created_at` (monthly partitions):
---   CREATE TABLE audit_logs ( ... ) PARTITION BY RANGE (created_at);
---   CREATE TABLE audit_logs_y2026m08 PARTITION OF audit_logs
---     FOR VALUES FROM ('2026-08-01') TO ('2026-09-01');
--- ============================================================================
