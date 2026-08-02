@@ -117,7 +117,7 @@ export default function BillingPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ planId: plan.id }),
+        body: JSON.stringify({ planTier: plan.id }),
       });
 
       const checkoutData = await checkoutRes.json();
@@ -127,14 +127,16 @@ export default function BillingPage() {
         return;
       }
 
+      const orderData = checkoutData.order || checkoutData;
+
       // 2. Open the standard Razorpay Checkout window
       const options = {
-        key: checkoutData.key,
-        amount: checkoutData.amount,
-        currency: checkoutData.currency,
+        key: orderData.keyId || orderData.key,
+        amount: orderData.amount,
+        currency: orderData.currency || "INR",
         name: "PrivyStack Compliance",
         description: `Upgrade to ${plan.name}`,
-        order_id: checkoutData.orderId,
+        order_id: orderData.orderId,
         handler: async function (response: {
           razorpay_payment_id: string;
           razorpay_order_id: string;

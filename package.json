@@ -10,7 +10,8 @@
     "test": "npx tsx --env-file=.env.local src/tests/run-tests.ts",
     "test:isolation": "npx tsx --env-file=.env.local src/tests/cross-tenant-isolation.test.ts",
     "test:security": "npx tsx src/tests/security/sanitization.test.ts",
-    "test:all": "npm run test && npm run test:isolation && npm run test:security"
+    "test:razorpay": "npx tsx src/tests/razorpay-checkout.test.ts",
+    "test:all": "npm run test && npm run test:isolation && npm run test:security && npm run test:razorpay"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.5.12",
