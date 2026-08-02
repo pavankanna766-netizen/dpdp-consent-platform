@@ -1,76 +1,68 @@
-export type OrgRole = 'owner' | 'admin' | 'viewer';
+export type OrgRole =
+  | "owner"
+  | "admin"
+  | "compliance_manager"
+  | "legal_counsel"
+  | "developer"
+  | "viewer"
+  | "auditor";
 
 const ROLE_HIERARCHY: Record<OrgRole, number> = {
-  owner: 3,
-  admin: 2,
+  owner: 7,
+  admin: 6,
+  compliance_manager: 5,
+  legal_counsel: 4,
+  developer: 3,
+  auditor: 2,
   viewer: 1,
 };
 
-/**
- * Check if a role has at least the required permission level.
- */
 export function hasMinRole(userRole: OrgRole, requiredRole: OrgRole): boolean {
-  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
+  return (ROLE_HIERARCHY[userRole] || 1) >= (ROLE_HIERARCHY[requiredRole] || 1);
 }
 
-/**
- * Permission matrix: maps actions to minimum required role.
- */
 export const PERMISSIONS = {
-  // Company management
-  'company.update': 'owner' as OrgRole,
-  'company.delete': 'owner' as OrgRole,
-  'company.members.manage': 'owner' as OrgRole,
-  
-  // Consent templates
-  'template.create': 'admin' as OrgRole,
-  'template.update': 'admin' as OrgRole,
-  'template.publish': 'owner' as OrgRole,
-  'template.view': 'viewer' as OrgRole,
-  
-  // Consent records
-  'consent.view': 'viewer' as OrgRole,
-  'consent.withdraw': 'admin' as OrgRole,
-  
-  // DSAR
-  'dsar.view': 'viewer' as OrgRole,
-  'dsar.fulfill': 'admin' as OrgRole,
-  'dsar.reject': 'admin' as OrgRole,
-  
-  // Policies
-  'policy.create': 'admin' as OrgRole,
-  'policy.publish': 'owner' as OrgRole,
-  'policy.view': 'viewer' as OrgRole,
-  
-  // Scanner
-  'scanner.run': 'admin' as OrgRole,
-  'scanner.view': 'viewer' as OrgRole,
-  
-  // Billing
-  'billing.manage': 'owner' as OrgRole,
-  'billing.view': 'admin' as OrgRole,
-  
-  // Audit
-  'audit.view': 'viewer' as OrgRole,
-  
-  // Settings
-  'settings.update': 'owner' as OrgRole,
-  'settings.view': 'viewer' as OrgRole,
-  
-  // Banner
-  'banner.create': 'admin' as OrgRole,
-  'banner.update': 'admin' as OrgRole,
-  'banner.view': 'viewer' as OrgRole,
-  
-  // Breach incidents
-  'breach.create': 'admin' as OrgRole,
-  'breach.view': 'viewer' as OrgRole,
-  
-  // Vendor/Inventory
-  'vendor.manage': 'admin' as OrgRole,
-  'vendor.view': 'viewer' as OrgRole,
-  'inventory.manage': 'admin' as OrgRole,
-  'inventory.view': 'viewer' as OrgRole,
+  // Company & Organization Management
+  "company.update": "admin" as OrgRole,
+  "company.delete": "owner" as OrgRole,
+  "company.members.manage": "admin" as OrgRole,
+  "company.members.invite": "admin" as OrgRole,
+  "company.ownership.transfer": "owner" as OrgRole,
+
+  // Document Studio & Legal Approvals
+  "policy.create": "legal_counsel" as OrgRole,
+  "policy.publish": "legal_counsel" as OrgRole,
+  "policy.view": "viewer" as OrgRole,
+  "approval.sign": "legal_counsel" as OrgRole,
+
+  // Privacy Scanner
+  "scanner.run": "compliance_manager" as OrgRole,
+  "scanner.view": "viewer" as OrgRole,
+
+  // Data Inventory & Vendors
+  "inventory.manage": "compliance_manager" as OrgRole,
+  "inventory.view": "viewer" as OrgRole,
+  "vendor.manage": "compliance_manager" as OrgRole,
+  "vendor.view": "viewer" as OrgRole,
+
+  // DSAR & Consent
+  "dsar.view": "viewer" as OrgRole,
+  "dsar.fulfill": "compliance_manager" as OrgRole,
+  "consent.view": "viewer" as OrgRole,
+
+  // API Keys & Developer Options
+  "api_keys.manage": "developer" as OrgRole,
+  "webhooks.manage": "developer" as OrgRole,
+
+  // Billing & Subscriptions
+  "billing.manage": "owner" as OrgRole,
+  "billing.view": "admin" as OrgRole,
+
+  // Audit Logs & Security
+  "audit.view": "auditor" as OrgRole,
+
+  // Branding & Settings
+  "branding.manage": "admin" as OrgRole,
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;

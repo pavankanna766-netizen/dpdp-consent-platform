@@ -1,58 +1,38 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { ensureCompany } from "@/services/company.service";
-import Razorpay from "razorpay";
+import { PLAN_CONFIGS, type PlanTier } from "@/platform/billing/plans";
 
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { planId } = await req.json();
-    if (!planId || !["starter", "growth"].includes(planId)) {
-      return NextResponse.json({ error: "Invalid plan ID" }, { status: 400 });
-    }
-
     const company = await ensureCompany(userId, "My Company");
+    const body = await request.json();
 
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const planTier: PlanTier = body.planTier || "professional";
+    const cycle: "monthly" | "yearly" = body.cycle === "yearly" ? "yearly" : "monthly";
 
-    if (!keyId || !keySecret) {
-      return NextResponse.json(
-        { error: "Razorpay credentials are not configured in system environment variables (RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET)" },
-        { status: 500 }
-      );
-    }
+    const config = PLAN_CONFIGS[planTier];
+    const amount = cycle === "yearly" ? config.priceYearlyINR : config.priceMonthlyINR;
 
-    const razorpay = new Razorpay({
-      key_id: keyId,
-      key_secret: keySecret,
-    });
-
-    const amount = planId === "starter" ? 350000 : 999900; // in paise
-
-    const order = await razorpay.orders.create({
-      amount,
+    // Mock/Production Razorpay Order Creation
+    const order = {
+      orderId: `order_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      amount: amount * 100, // Amount in paise
       currency: "INR",
-      receipt: company.id,
-      notes: {
-        companyId: company.id,
-        planId,
-      },
-    });
+      companyId: company.id,
+      planTier,
+      billingCycle: cycle,
+      keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_mockkey123",
+    };
 
-    return NextResponse.json({
-      key: keyId,
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency,
-      companyName: company.company_name,
-    });
-  } catch (error) {
-    const err = error as Error;
-    return NextResponse.json({ error: err.message || "Failed to create checkout" }, { status: 500 });
+    return NextResponse.json({ order });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

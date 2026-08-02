@@ -50,6 +50,14 @@ export async function findApiKeyByValue(apiKey: string) {
     .maybeSingle();
 }
 
+export async function validateApiKeyHeader(rawKey: string): Promise<ApiKeyRecord | null> {
+  const { data } = await findApiKeyByValue(rawKey);
+  if (data) {
+    await recordApiKeyPing(rawKey);
+  }
+  return data || null;
+}
+
 export async function recordApiKeyPing(apiKey: string) {
   const now = new Date().toISOString();
   return supabaseAdmin

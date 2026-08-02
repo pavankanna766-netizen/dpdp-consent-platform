@@ -1,0 +1,63 @@
+name: PrivyStack Enterprise Production CI/CD
+
+on:
+  push:
+    branches: [ main, staging ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint --if-present
+      - run: npx tsc --noEmit
+
+  automated-tests:
+    name: Automated Unit & E2E Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: "https://mock.supabase.co"
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "mock-anon-key"
+      SUPABASE_SERVICE_ROLE_KEY: "mock-service-role-key"
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_mock"
+      CLERK_SECRET_KEY: "sk_test_mock"
+      NEXT_PUBLIC_PRIVYSTACK_API_URL: "https://privystack.com"
+      NEXT_PUBLIC_PRIVYSTACK_TEMPLATE_TOKEN: "tmpl_mock_123"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - run: npm ci
+      - run: npx tsx src/tests/run-tests.ts
+
+  build-and-package:
+    name: Production Next.js Build
+    runs-on: ubuntu-latest
+    needs: automated-tests
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: "https://mock.supabase.co"
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "mock-anon-key"
+      SUPABASE_SERVICE_ROLE_KEY: "mock-service-role-key"
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_mock"
+      CLERK_SECRET_KEY: "sk_test_mock"
+      NEXT_PUBLIC_PRIVYSTACK_API_URL: "https://privystack.com"
+      NEXT_PUBLIC_PRIVYSTACK_TEMPLATE_TOKEN: "tmpl_mock_123"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build

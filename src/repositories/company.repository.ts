@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import type { OrgRole } from "@/platform/permissions/rbac";
 
 export async function findCompanyByClerkUserId(clerkUserId: string) {
   return supabaseAdmin
@@ -111,4 +112,29 @@ export async function completeCompanyOnboarding(values: {
     p_timezone: values.timezone,
     p_use_cases: values.useCases,
   });
+}
+
+export async function addCompanyMember(companyId: string, clerkUserId: string, role: OrgRole) {
+  return supabaseAdmin.from("company_members").insert({
+    company_id: companyId,
+    clerk_user_id: clerkUserId,
+    role,
+  }).select().single();
+}
+
+export async function getCompanyMembers(companyId: string) {
+  return supabaseAdmin.from("company_members").select("*").eq("company_id", companyId);
+}
+
+export async function removeCompanyMember(companyId: string, memberId: string) {
+  return supabaseAdmin.from("company_members").delete().eq("company_id", companyId).eq("id", memberId);
+}
+
+export async function updateCompanyMemberRole(companyId: string, memberId: string, role: OrgRole) {
+  return supabaseAdmin.from("company_members").update({ role }).eq("company_id", companyId).eq("id", memberId).select().single();
+}
+
+export async function getUserCompanyRole(companyId: string, clerkUserId: string): Promise<OrgRole> {
+  const { data } = await supabaseAdmin.from("company_members").select("role").eq("company_id", companyId).eq("clerk_user_id", clerkUserId).maybeSingle();
+  return (data?.role as OrgRole) || "viewer";
 }

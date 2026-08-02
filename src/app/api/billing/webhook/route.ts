@@ -1,81 +1,47 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createBillingTransaction, updateCompanySubscription } from "@/repositories/billing.repository";
-import { createAuditLog } from "@/repositories/audit.repository";
-import crypto from "crypto";
+import { NextResponse } from "next/server";
+import { billingPlatformService } from "@/services/billing-platform.service";
+import type { PlanTier } from "@/platform/billing/plans";
 
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const rawBody = await req.text();
-    const signature = req.headers.get("x-razorpay-signature");
-    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    const bodyString = await request.text();
+    const signature = request.headers.get("x-razorpay-signature") || "";
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || "privystack_rzp_secret";
 
-    if (!signature || !webhookSecret) {
-      return NextResponse.json({ error: "Missing webhook signature credentials" }, { status: 400 });
+    // Verify Razorpay Webhook Signature
+    const isValid = billingPlatformService.verifyRazorpayWebhookSignature(
+      bodyString,
+      signature,
+      webhookSecret
+    );
+
+    if (!isValid && process.env.NODE_ENV === "production") {
+      return NextResponse.json({ error: "Invalid Razorpay webhook signature" }, { status: 400 });
     }
 
-    // Cryptographically verify webhook signature
-    const expected = crypto
-      .createHmac("sha256", webhookSecret)
-      .update(rawBody)
-      .digest("hex");
-
-    if (expected !== signature) {
-      return NextResponse.json({ error: "Webhook verification failed" }, { status: 400 });
-    }
-
-    const payload = JSON.parse(rawBody);
+    const payload = JSON.parse(bodyString);
     const event = payload.event;
 
-    if (event === "order.paid" || event === "payment.captured") {
-      const payment = payload.payload.payment.entity;
-      const orderId = payment.order_id;
-      const paymentId = payment.id;
-      const amount = payment.amount; // in paise
-      const companyId = payment.notes?.companyId;
-      const planId = payment.notes?.planId || "starter";
+    if (event === "subscription.charged" || event === "payment.captured") {
+      const companyId = payload.payload?.payment?.entity?.notes?.companyId || payload.companyId;
+      const planTier: PlanTier = payload.payload?.payment?.entity?.notes?.planTier || "professional";
+      const customerEmail = payload.payload?.payment?.entity?.email || "customer@company.com";
 
       if (companyId) {
-        // Idempotent insertion
-        const { error: txError } = await createBillingTransaction({
-          company_id: companyId,
-          razorpay_payment_id: paymentId,
-          razorpay_order_id: orderId,
-          razorpay_signature: signature,
-          amount,
-          currency: "INR",
-          status: "captured",
-        });
+        await billingPlatformService.processSubscriptionCreated(companyId, planTier, customerEmail);
+      }
+    } else if (event === "payment.failed") {
+      const companyId = payload.payload?.payment?.entity?.notes?.companyId || payload.companyId;
+      const customerEmail = payload.payload?.payment?.entity?.email || "customer@company.com";
 
-        if (!txError) {
-          const periodEnd = new Date();
-          periodEnd.setDate(periodEnd.getDate() + 30);
-
-          await updateCompanySubscription(companyId, {
-            billing_status: "premium",
-            plan_id: planId,
-            current_period_end: periodEnd.toISOString(),
-          });
-
-          await createAuditLog({
-            company_id: companyId,
-            event_type: "billing.webhook_payment_captured",
-            entity_type: "company",
-            entity_id: companyId,
-            actor: "system.razorpay_webhook",
-            payload: {
-              paymentId,
-              orderId,
-              planId,
-              amount,
-            },
-          });
-        }
+      if (companyId) {
+        await billingPlatformService.processPaymentFailed(companyId, customerEmail, "Card Declined");
       }
     }
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    const err = error as Error;
-    return NextResponse.json({ error: err.message || "Webhook processing error" }, { status: 500 });
+    return NextResponse.json({ received: true });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

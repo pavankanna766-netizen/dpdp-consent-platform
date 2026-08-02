@@ -1,71 +1,86 @@
-import {
-  defaultConfig,
-} from "./config";
-
+import crypto from "crypto";
 import { ApiClient } from "./api";
 
-import { logger } from "@/platform/logger";
-
-import { VisitorManager } from "./visitor";
-
-import type {
-  PrivyStackConfig,
-} from "./types";
+export interface PrivyStackClientOptions {
+  apiKey?: string;
+  token?: string;
+  baseUrl?: string;
+}
 
 export class PrivyStackClient {
-  private readonly config: Required<PrivyStackConfig>;
+  private apiKey: string;
+  private token: string;
+  private baseUrl: string;
+  private api: ApiClient;
 
-  private readonly visitor =
-    new VisitorManager();
-
-  private readonly api: ApiClient;
-
-  constructor(
-    config: PrivyStackConfig
-  ) {
-    this.config = {
-      ...defaultConfig,
-      ...config,
-    };
-
-    this.api =
-      new ApiClient(
-        this.config.apiBaseUrl
-      );
+  constructor(options: PrivyStackClientOptions) {
+    this.apiKey = options.apiKey || options.token || "";
+    this.token = options.token || options.apiKey || "";
+    this.baseUrl = options.baseUrl || "https://privystack.com/api/v1";
+    this.api = new ApiClient(this.baseUrl);
   }
 
-  getConfig() {
-    return this.config;
+  async init() {
+    return this;
   }
 
   getApi() {
     return this.api;
   }
 
-  getVisitorId() {
-    return this.visitor.getVisitorId();
+  getConfig() {
+    return {
+      apiKey: this.apiKey,
+      token: this.token,
+      baseUrl: this.baseUrl,
+    };
   }
 
-  async init() {
-    logger.info(
-  "PrivyStack initialized"
-);
+  private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
+    const res = await fetch(`${this.baseUrl}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.apiKey}`,
+        ...options.headers,
+      },
+    });
 
-logger.debug(
-  "SDK configuration",
-  this.config
-);
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(`PrivyStack API Error (${res.status}): ${errBody.error || res.statusText}`);
+    }
 
-logger.debug(
-  "Visitor ID",
-  this.visitor.getVisitorId()
-);
+    return res.json() as Promise<T>;
+  }
 
-    // Verify that the configured template exists.
-    await this.api.get(
-      `/template/${this.config.token}`
-    );
+  async getLatestScan() {
+    return this.request<{ scan: unknown }>("/scanner/latest");
+  }
 
-    return this;
+  async getPublishedPolicies() {
+    return this.request<{ policies: unknown }>("/policies");
+  }
+
+  static verifyWebhookSignature(payloadString: string, signatureHeader: string, secret: string): boolean {
+    try {
+      const parts = signatureHeader.split(",");
+      const timestampPart = parts.find((p) => p.startsWith("t="));
+      const sigPart = parts.find((p) => p.startsWith("v1="));
+
+      if (!timestampPart || !sigPart) return false;
+
+      const timestamp = parseInt(timestampPart.replace("t=", ""), 10);
+      const signature = sigPart.replace("v1=", "");
+
+      const expectedSig = crypto
+        .createHmac("sha256", secret)
+        .update(`${timestamp}.${payloadString}`)
+        .digest("hex");
+
+      return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig));
+    } catch {
+      return false;
+    }
   }
 }
