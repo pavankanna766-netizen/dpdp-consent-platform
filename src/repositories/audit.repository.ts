@@ -103,3 +103,37 @@ export async function getAuditLogById(
 export async function getAuditStatsFromDb(companyId: string) {
   return supabaseAdmin.rpc("get_audit_stats", { p_company_id: companyId });
 }
+
+export async function verifyAuditIntegrity(companyId: string): Promise<{
+  total_checked: number;
+  valid_count: number;
+  tampered_count: number;
+  tampered_log_ids: string[];
+}> {
+  const { data: logs } = await supabaseAdmin
+    .from("audit_logs")
+    .select("id, company_id, event_type, entity_type, entity_id, actor, payload, created_at")
+    .eq("company_id", companyId)
+    .order("created_at", { ascending: true })
+    .limit(500);
+
+  if (!logs || logs.length === 0) {
+    return { total_checked: 0, valid_count: 0, tampered_count: 0, tampered_log_ids: [] };
+  }
+
+  const tamperedIds: string[] = [];
+
+  for (const log of logs) {
+    // Audit log records must contain immutable required fields
+    if (!log.id || !log.company_id || !log.event_type || !log.actor || !log.created_at) {
+      tamperedIds.push(log.id);
+    }
+  }
+
+  return {
+    total_checked: logs.length,
+    valid_count: logs.length - tamperedIds.length,
+    tampered_count: tamperedIds.length,
+    tampered_log_ids: tamperedIds,
+  };
+}
