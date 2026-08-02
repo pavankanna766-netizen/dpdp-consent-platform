@@ -20,7 +20,7 @@ export default async function LegalStudioPage({
 
   let latestRes = await legalDocumentService.getLatest(company.id, docType);
   if (!latestRes.data) {
-    await legalDocumentService.generateDocument(company.id, docType);
+    await legalDocumentService.generateAutoDocument(company.id, docType);
     latestRes = await legalDocumentService.getLatest(company.id, docType);
   }
 

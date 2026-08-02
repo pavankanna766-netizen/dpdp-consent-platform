@@ -43,6 +43,10 @@ export interface TrustCenterDashboard {
     status: string;
     embed_token?: string;
   } | null;
+  disclosures?: {
+    privacyPolicy?: { version: number; publishedAt: string; url: string } | null;
+    cookiePolicy?: { version: number; publishedAt: string; url: string } | null;
+  };
   publicLinks: {
     privacyPolicy: string | null;
     cookiePolicy: string | null;

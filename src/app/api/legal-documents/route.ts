@@ -21,7 +21,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ documents: versions || [] });
     }
 
-    const { data: documents, error } = await legalDocumentService.listAll(company.id);
+    const { data: documents, error } = await legalDocumentService.listDocuments(company.id);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     return NextResponse.json({ documents: documents || [] });
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     if (body.action === "generate") {
-      const { data: doc, error } = await legalDocumentService.generateDocument(
+      const { data: doc, error } = await legalDocumentService.generateAutoDocument(
         company.id,
         body.type || "custom"
       );
@@ -53,9 +53,7 @@ export async function POST(request: Request) {
     const { data: doc, error } = await legalDocumentService.createDocument(company.id, {
       type: body.type || "custom",
       title: body.title || "Untitled Legal Document",
-      slug: body.slug || "document",
-      htmlContent: body.htmlContent || "",
-      sections: body.sections,
+      content_html: body.content_html || body.htmlContent || "",
       metadata: body.metadata,
     });
 

@@ -3,23 +3,15 @@
 import { useState } from "react";
 import {
   ShieldCheck,
-  FileText,
   Lock,
-  Globe,
   Mail,
   Award,
   ExternalLink,
   CheckCircle2,
-  AlertTriangle,
-  Server,
-  Key,
-  HelpCircle,
   Search,
-  Share2,
-  Download,
-  Building2,
   Copy,
   Check,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,10 +48,10 @@ interface Props {
     dpoEmail: string;
     certifications: string[];
     systemStatus: string;
-    showVendors?: boolean;
-    showInventory?: boolean;
-    securityTxtContent?: string;
-    faqItems?: Array<{ question: string; answer: string }>;
+    showVendors: boolean;
+    showInventory: boolean;
+    securityTxtContent: string;
+    faqItems: Array<{ question: string; answer: string }>;
   };
   metrics: {
     privacyScore: number;
@@ -68,8 +60,8 @@ interface Props {
     lastAuditDate: string;
   };
   disclosures: {
-    privacyPolicy: { version: number; publishedAt: string | null; url: string } | null;
-    cookiePolicy: { version: number; publishedAt: string | null; url: string } | null;
+    privacyPolicy?: { version: number; publishedAt: string; url: string } | null;
+    cookiePolicy?: { version: number; publishedAt: string; url: string } | null;
   };
   subprocessors: VendorItem[];
   inventory: InventoryItem[];
@@ -108,235 +100,230 @@ export function EnterpriseTrustPortal({
         <div className="mx-auto max-w-6xl px-6 flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
           <div className="space-y-3 max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              Operational System Status: {trustPortal.systemStatus.toUpperCase()}
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              {trustPortal.systemStatus === "operational" ? "All Systems Operational" : "Compliance Audit Active"}
             </div>
-
             <div className="flex items-center gap-4">
               {trustPortal.logoUrl && (
-                <img src={trustPortal.logoUrl} alt={company.company_name} className="h-12 object-contain bg-white/5 p-1 rounded-lg" />
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={trustPortal.logoUrl} alt={company.company_name} className="h-10 object-contain" />
               )}
-              <h1 className="text-3xl md:text-5xl font-black tracking-tight">{company.company_name} Trust Center</h1>
+              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">
+                {company.company_name} Trust Center
+              </h1>
             </div>
-
-            <p className="text-sm md:text-base text-slate-400 leading-relaxed">
-              {trustPortal.description || "Official statutory compliance disclosures, subprocessor registry, security commitments, and DPDP Act 2023 verification portal."}
+            <p className="text-slate-300 text-sm md:text-base leading-relaxed">
+              {trustPortal.description}
             </p>
           </div>
 
-          {/* Privacy Score & Share Card */}
-          <div className="flex flex-col items-center gap-3 shrink-0">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 text-center space-y-1 w-48 shadow-xl">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Privacy Audit Score</span>
-              <div className="text-4xl font-black text-emerald-400">
-                {metrics.privacyScore} <span className="text-lg font-bold text-slate-500">/ 100</span>
-              </div>
-              <div className="text-[11px] font-semibold text-slate-400 flex items-center justify-center gap-1">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" /> DPDP Compliant
-              </div>
-            </div>
-
-            <Button size="sm" variant="outline" onClick={handleCopyLink} className="text-xs border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 w-48">
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-400 mr-1.5" /> : <Copy className="h-3.5 w-3.5 mr-1.5" />}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button onClick={handleCopyLink} variant="outline" className="bg-slate-900 border-slate-700 text-white hover:bg-slate-800">
+              {copied ? <Check className="h-4 w-4 mr-2 text-emerald-400" /> : <Copy className="h-4 w-4 mr-2" />}
               {copied ? "Link Copied!" : "Share Trust Portal"}
             </Button>
+            {company.website && (
+              <a href={company.website} target="_blank" rel="noreferrer">
+                <Button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white">
+                  Visit Website <ExternalLink className="h-4 w-4 ml-2" />
+                </Button>
+              </a>
+            )}
           </div>
         </div>
       </header>
 
-      {/* Navigation Sub-Header */}
-      <nav className="bg-white border-b sticky top-0 z-20 shadow-2xs">
-        <div className="mx-auto max-w-6xl px-6 flex items-center justify-between overflow-x-auto">
-          <div className="flex gap-1 py-3">
-            {[
-              { id: "overview", label: "Trust Overview" },
-              { id: "policies", label: "Statutory Policies" },
-              { id: "security", label: "Security & Audits" },
-              { id: "vendors", label: "Subprocessors" },
-              { id: "inventory", label: "Data Inventory" },
-              { id: "status", label: "System Status" },
-              { id: "security_txt", label: "RFC 9116 security.txt" },
-              { id: "faq", label: "FAQ" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${
-                  activeTab === tab.id
-                    ? "bg-slate-900 text-white"
-                    : "text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="hidden md:flex items-center gap-2 w-64">
-            <Search className="h-3.5 w-3.5 text-slate-400 absolute ml-3 pointer-events-none" />
-            <Input
-              placeholder="Search portal..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 text-xs pl-9"
-            />
-          </div>
+      {/* Navigation Tabs */}
+      <div className="sticky top-0 z-20 bg-white border-b border-slate-200 shadow-sm">
+        <div className="mx-auto max-w-6xl px-6 flex items-center gap-1 overflow-x-auto py-2">
+          {(["overview", "policies", "security", "vendors", "inventory", "status", "security_txt", "faq"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition whitespace-nowrap capitalize ${
+                activeTab === tab
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              {tab.replace("_", ".")}
+            </button>
+          ))}
         </div>
-      </nav>
+      </div>
 
-      {/* Main Content Area */}
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        {/* TAB 1: OVERVIEW */}
+      {/* Content Panels */}
+      <div className="mx-auto max-w-6xl px-6 pt-8">
         {activeTab === "overview" && (
-          <div className="space-y-10">
-            {/* Certifications Badges */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex items-center gap-4">
-                <div className="rounded-xl bg-indigo-50 p-3 text-indigo-600">
-                  <ShieldCheck className="h-6 w-6" />
+          <div className="space-y-8">
+            {/* Score Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+                  <span>Privacy Score</span>
+                  <ShieldCheck className="h-5 w-5 text-emerald-500" />
                 </div>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">DPDP Act 2023</h4>
-                  <p className="text-xs text-slate-500 mt-0.5">Statutory Notice Compliant</p>
-                </div>
+                <div className="text-3xl font-extrabold text-slate-900">{metrics.privacyScore} / 100</div>
+                <p className="text-xs text-slate-500">Statutory DPDP Audit Score</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex items-center gap-4">
-                <div className="rounded-xl bg-emerald-50 p-3 text-emerald-600">
-                  <Award className="h-6 w-6" />
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+                  <span>Active Consents</span>
+                  <CheckCircle2 className="h-5 w-5 text-indigo-500" />
                 </div>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">ISO 27001 Certified</h4>
-                  <p className="text-xs text-slate-500 mt-0.5">Information Security Standard</p>
-                </div>
+                <div className="text-3xl font-extrabold text-slate-900">{metrics.activeConsents.toLocaleString()}</div>
+                <p className="text-xs text-slate-500">Logged Consent Receipts</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex items-center gap-4">
-                <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
-                  <Lock className="h-6 w-6" />
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+                  <span>Subprocessors</span>
+                  <Lock className="h-5 w-5 text-amber-500" />
                 </div>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">SOC 2 Type II</h4>
-                  <p className="text-xs text-slate-500 mt-0.5">Trust Services Criteria</p>
+                <div className="text-3xl font-extrabold text-slate-900">{subprocessors.length}</div>
+                <p className="text-xs text-slate-500">Executed DPAs & SCCs</p>
+              </div>
+
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+                  <span>Audit Date</span>
+                  <Award className="h-5 w-5 text-indigo-500" />
                 </div>
+                <div className="text-sm font-bold text-slate-900 mt-2">
+                  {new Date(metrics.lastAuditDate).toLocaleDateString("en-IN")}
+                </div>
+                <p className="text-xs text-slate-500">Automated Scan Completed</p>
               </div>
             </div>
 
-            {/* DPO & Contact Box */}
-            <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
-              <div className="space-y-1">
-                <h4 className="text-base font-bold text-indigo-950 flex items-center gap-2">
-                  <Mail className="h-5 w-5 text-indigo-600" /> Data Protection Officer & Grievance Contact
-                </h4>
-                <p className="text-xs text-indigo-800">
-                  For privacy inquiries, grievance redressal, or exercising Data Principal rights under DPDP Act Section 13.
+            {/* DPO Contact Card */}
+            <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-8 shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Mail className="h-6 w-6 text-indigo-400" /> Data Protection Officer (DPO)
+                </h3>
+                <p className="text-sm text-slate-300 max-w-2xl">
+                  {trustPortal.dpoName} serves as the designated Data Protection Officer. Exercise your rights under Section 11-14 of the DPDP Act 2023.
                 </p>
               </div>
-              <div className="text-right shrink-0">
-                <span className="text-sm font-black text-indigo-950 block">{trustPortal.dpoName}</span>
-                <span className="text-xs font-mono font-bold text-indigo-600">{trustPortal.dpoEmail}</span>
-              </div>
+              <a href={`mailto:${trustPortal.dpoEmail}`}>
+                <Button className="bg-white text-slate-950 hover:bg-slate-100 font-semibold px-6 py-3">
+                  Email DPO
+                </Button>
+              </a>
             </div>
           </div>
         )}
 
-        {/* TAB 2: POLICIES */}
         {activeTab === "policies" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="text-lg font-bold text-slate-900">Privacy Policy</h4>
-                  <p className="text-xs text-slate-500 mt-1">Statutory data processing notice & rights disclosures.</p>
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+            <h2 className="text-lg font-bold text-slate-900">Published Statutory Notices</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {disclosures.privacyPolicy && (
+                <div className="p-5 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-900 flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-indigo-600" /> Privacy Policy
+                    </span>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                      v{disclosures.privacyPolicy.version}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600">Published: {new Date(disclosures.privacyPolicy.publishedAt).toLocaleDateString()}</p>
+                  <a href={disclosures.privacyPolicy.url} className="text-xs font-semibold text-indigo-600 flex items-center gap-1">
+                    View Policy <ExternalLink className="h-3 w-3" />
+                  </a>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${disclosures.privacyPolicy ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"}`}>
-                  {disclosures.privacyPolicy ? "Published" : "Pending"}
-                </span>
-              </div>
-              {company.slug && (
-                <a
-                  href={`/p/${company.slug}/privacy`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800"
-                >
-                  View Published Notice <ExternalLink className="h-3.5 w-3.5" />
-                </a>
               )}
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="text-lg font-bold text-slate-900">Cookie Policy</h4>
-                  <p className="text-xs text-slate-500 mt-1">Cookie categories & tracker disclosures.</p>
+              {disclosures.cookiePolicy && (
+                <div className="p-5 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-900 flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-indigo-600" /> Cookie Policy
+                    </span>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                      v{disclosures.cookiePolicy.version}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600">Published: {new Date(disclosures.cookiePolicy.publishedAt).toLocaleDateString()}</p>
+                  <a href={disclosures.cookiePolicy.url} className="text-xs font-semibold text-indigo-600 flex items-center gap-1">
+                    View Policy <ExternalLink className="h-3 w-3" />
+                  </a>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${disclosures.cookiePolicy ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"}`}>
-                  {disclosures.cookiePolicy ? "Published" : "Pending"}
-                </span>
-              </div>
-              {company.slug && (
-                <a
-                  href={`/p/${company.slug}/cookies`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800"
-                >
-                  View Published Notice <ExternalLink className="h-3.5 w-3.5" />
-                </a>
               )}
             </div>
           </div>
         )}
 
-        {/* TAB 4: VENDORS */}
         {activeTab === "vendors" && (
-          <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-            <div className="p-6 border-b">
-              <h3 className="text-lg font-bold text-slate-900">Authorized Subprocessors</h3>
-              <p className="text-xs text-slate-500 mt-1">List of third-party data processors with executed DPA agreements.</p>
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">Authorized Subprocessors</h2>
+                <p className="text-xs text-slate-500">Subprocessors engaged for personal data storage and processing.</p>
+              </div>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Search vendors..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 text-xs"
+                />
+              </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-700">
-                <thead className="bg-slate-50 border-b text-[10px] uppercase tracking-wider text-slate-500">
-                  <tr>
-                    <th className="p-4">Processor Name</th>
-                    <th className="p-4">Category</th>
-                    <th className="p-4">Country</th>
-                    <th className="p-4">DPA Safeguard</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {filteredVendors.map((v, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50">
-                      <td className="p-4 font-bold text-slate-900">{v.name}</td>
-                      <td className="p-4">{v.category}</td>
-                      <td className="p-4">{v.country}</td>
-                      <td className="p-4">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 px-2.5 py-0.5 text-[10px] font-bold">
-                          <CheckCircle2 className="h-3 w-3" /> {v.dpaStatus}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+            <div className="divide-y divide-slate-100 border rounded-xl overflow-hidden">
+              {filteredVendors.map((v, idx) => (
+                <div key={idx} className="p-4 flex items-center justify-between text-sm">
+                  <div>
+                    <div className="font-bold text-slate-900">{v.name}</div>
+                    <div className="text-xs text-slate-500">{v.category} • {v.country}</div>
+                  </div>
+                  <div className="text-right">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> {v.dpaStatus}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* TAB 7: RFC 9116 SECURITY.TXT */}
-        {activeTab === "security_txt" && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b pb-4">
+        {activeTab === "inventory" && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">RFC 9116 security.txt Disclosure</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Standardized vulnerability disclosure contact specification.</p>
+                <h2 className="text-lg font-bold text-slate-900">Data Inventory Summary</h2>
+                <p className="text-xs text-slate-500">Categories of personal data processed and statutory retention periods.</p>
+              </div>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Search data categories..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 text-xs"
+                />
               </div>
             </div>
-            <pre className="rounded-xl bg-slate-900 text-emerald-400 p-6 text-xs font-mono overflow-x-auto leading-relaxed">
-              {trustPortal.securityTxtContent || `Contact: mailto:${trustPortal.securityEmail}\nExpires: 2027-12-31T23:59:59.000Z\nPreferred-Languages: en\nCanonical: https://privystack.com/trust/${company.slug}`}
-            </pre>
+
+            <div className="divide-y divide-slate-100 border rounded-xl overflow-hidden">
+              {filteredInventory.map((item, idx) => (
+                <div key={idx} className="p-4 flex items-center justify-between text-sm">
+                  <div>
+                    <div className="font-bold text-slate-900">{item.name}</div>
+                    <div className="text-xs text-slate-500">{item.data_category} • Purpose: {item.purpose}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs font-semibold text-slate-700">Retention: {item.retention_period}</div>
+                    <div className="text-xs text-slate-400">Ground: {item.legal_basis}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

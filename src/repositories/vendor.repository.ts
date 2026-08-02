@@ -85,6 +85,10 @@ export async function updateVendor(
     .single();
 }
 
+export async function confirmVendor(companyId: string, id: string) {
+  return updateVendor(companyId, id, { unconfirmed: false });
+}
+
 export async function deleteVendor(companyId: string, id: string) {
   return supabaseAdmin
     .from("vendor_registry")
@@ -121,22 +125,11 @@ export async function autoCreateVendorFromScanner(
     dpa_uploaded: false,
     country: "United States",
     scc_required: true,
-    security_rating: "A",
+    security_rating: "B",
     status: "under_review",
     scanner_discovered: true,
     unconfirmed: true,
   });
 
   return data;
-}
-
-export async function linkVendorToInventory(vendorId: string, dataInventoryId: string) {
-  return supabaseAdmin
-    .from("data_inventory_vendors")
-    .insert({
-      vendor_id: vendorId,
-      data_inventory_id: dataInventoryId,
-    })
-    .select()
-    .maybeSingle();
 }

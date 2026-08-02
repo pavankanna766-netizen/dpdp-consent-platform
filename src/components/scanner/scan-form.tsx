@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useCompany } from "./use-company";
 import { useScanner } from "./scanner-context";
 
@@ -10,17 +10,12 @@ export function ScanForm() {
   const [error, setError] = useState<string | null>(null);
   const { refresh, setStatus } = useScanner();
 
-  const [url, setUrl] = useState("");
-
-  useEffect(() => {
-    if (company?.website && !url) {
-      setUrl(company.website);
-    }
-  }, [company, url]);
+  const [url, setUrl] = useState(company?.website || "");
 
   async function runScan() {
     setError(null);
-    if (!url.trim()) {
+    const targetUrl = url.trim() || company?.website || "";
+    if (!targetUrl) {
       setError("Please enter a valid website URL.");
       return;
     }
@@ -35,7 +30,7 @@ export function ScanForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          url: url.trim(),
+          url: targetUrl,
         }),
       });
 
@@ -68,7 +63,7 @@ export function ScanForm() {
 
       <input
         type="url"
-        value={url}
+        value={url || company?.website || ""}
         onChange={(e) => {
           setUrl(e.target.value);
           if (error) setError(null);

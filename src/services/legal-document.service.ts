@@ -8,7 +8,6 @@ import {
   updateLegalDocument,
   archiveLegalDocument,
   type LegalDocumentType,
-  type LegalDocumentRecord,
 } from "@/repositories/legal-document.repository";
 import { sanitizeHtml, stripHtml } from "@/platform/security/sanitize";
 import { unifiedPolicyComposerService } from "@/modules/policies/application/unified-policy-composer.service";
@@ -19,123 +18,109 @@ export class LegalDocumentService {
     values: {
       type: LegalDocumentType;
       title: string;
-      slug: string;
-      htmlContent: string;
-      sections?: Array<{ id?: string; title: string; content: string; order?: number }>;
+      content_html: string;
       metadata?: Record<string, unknown>;
     }
   ) {
-    const cleanHtml = sanitizeHtml(values.htmlContent);
-    const plaintext = stripHtml(cleanHtml);
+    const cleanTitle = stripHtml(values.title);
+    const cleanContent = sanitizeHtml(values.content_html);
 
-    const latest = await getLatestLegalDocument(companyId, values.type);
-    const nextVersion = latest.data ? latest.data.version + 1 : 1;
+    const latestRes = await getLatestLegalDocument(companyId, values.type);
+    const nextVersion = (latestRes.data?.version || 0) + 1;
+    const slug = values.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "document";
 
     return createLegalDocument({
       company_id: companyId,
       document_type: values.type,
-      title: values.title,
-      slug: values.slug,
+      title: cleanTitle,
+      slug,
+      html_content: cleanContent,
       version: nextVersion,
-      status: "draft",
-      html_content: cleanHtml,
-      plaintext_content: plaintext,
-      sections: values.sections || [],
       metadata: values.metadata || {},
-      reviewed_by_counsel: false,
     });
   }
 
-  async generateDocument(companyId: string, type: LegalDocumentType) {
-    let htmlContent = "";
-    let title = "Legal Document";
-    let slug = type.replace(/_/g, "-");
+  async generateAutoDocument(companyId: string, type: LegalDocumentType) {
+    let generatedHtml = "";
 
     if (type === "privacy_policy") {
-      title = "Statutory Privacy Policy";
-      htmlContent = await unifiedPolicyComposerService.generatePrivacyPolicy(companyId);
+      generatedHtml = await unifiedPolicyComposerService.generatePrivacyPolicy(companyId);
     } else if (type === "cookie_policy") {
-      title = "Statutory Cookie Policy";
-      htmlContent = await unifiedPolicyComposerService.generateCookiePolicy(companyId);
-    } else if (type === "dpa" || type === "data_processing_agreement") {
-      title = "Data Processing Agreement (DPA)";
-      htmlContent = `<h2>Data Processing Agreement (DPA)</h2><p>This DPA governs third-party processor safeguards under DPDP Act Section 8.</p>`;
-    } else if (type === "terms_of_service") {
-      title = "Terms of Service";
-      htmlContent = `<h2>Terms of Service</h2><p>Terms governing access and usage of platform services.</p>`;
-    } else if (type === "breach_report") {
-      title = "Personal Data Breach Incident Report";
-      htmlContent = `<h2>Breach Notification Report</h2><p>Statutory 6-hour CERT-In and DPBI breach notification record.</p>`;
+      generatedHtml = await unifiedPolicyComposerService.generateCookiePolicy(companyId);
     } else {
-      title = "Custom Legal Disclosure";
-      htmlContent = `<h2>Custom Legal Disclosure</h2><p>Custom legal disclosure document.</p>`;
+      generatedHtml = `<h1>${type.replace(/_/g, " ").toUpperCase()}</h1><p>Statutory legal document draft created for tenant.</p>`;
     }
+
+    const titleMap: Record<LegalDocumentType, string> = {
+      privacy_policy: "Statutory Privacy Policy",
+      cookie_policy: "Statutory Cookie Policy",
+      terms_of_service: "Terms of Service",
+      vendor_agreement: "Vendor Agreement",
+      dpa: "Data Processing Agreement (DPA)",
+      data_processing_agreement: "Data Processing Agreement",
+      breach_report: "Statutory Breach Report",
+      custom: "Custom Legal Document",
+    };
 
     return this.createDocument(companyId, {
       type,
-      title,
-      slug,
-      htmlContent,
+      title: titleMap[type] || "Legal Document",
+      content_html: generatedHtml,
     });
   }
 
-  async approveByCounsel(companyId: string, id: string, counselName: string) {
-    const { data: doc, error } = await getLegalDocumentById(companyId, id);
-    if (error || !doc || doc.company_id !== companyId) {
-      throw new Error("Document not found or unauthorized");
-    }
+  async updateContent(companyId: string, id: string, title: string, contentHtml: string) {
+    const cleanTitle = stripHtml(title);
+    const cleanContent = sanitizeHtml(contentHtml);
 
     return updateLegalDocument(companyId, id, {
-      reviewed_by_counsel: true,
-      reviewed_at: new Date().toISOString(),
-      reviewed_by: counselName,
+      title: cleanTitle,
+      html_content: cleanContent,
+    });
+  }
+
+  async markCounselSignoff(companyId: string, id: string, reviewed: boolean) {
+    return updateLegalDocument(companyId, id, {
+      reviewed_by_counsel: reviewed,
     });
   }
 
   async publishDocument(companyId: string, id: string) {
-    const { data: doc, error } = await getLegalDocumentById(companyId, id);
-    if (error || !doc || doc.company_id !== companyId) {
-      throw new Error("Document not found or unauthorized");
+    const docRes = await getLegalDocumentById(companyId, id);
+    if (!docRes.data) throw new Error("Legal document not found");
+
+    if (!docRes.data.reviewed_by_counsel) {
+      throw new Error("Legal Counsel sign-off approval is required before publishing.");
     }
 
     return updateLegalDocument(companyId, id, {
       status: "published",
       published_at: new Date().toISOString(),
-      archived: false,
     });
   }
 
-  async restoreVersion(companyId: string, id: string) {
-    const { data: doc, error } = await getLegalDocumentById(companyId, id);
-    if (error || !doc || doc.company_id !== companyId) {
-      throw new Error("Document not found or unauthorized");
-    }
-
-    return updateLegalDocument(companyId, id, {
-      archived: false,
-      status: "published",
-      published_at: new Date().toISOString(),
-    });
+  getDocument(companyId: string, id: string) {
+    return getLegalDocumentById(companyId, id);
   }
 
-  async archiveDocument(companyId: string, id: string) {
-    return archiveLegalDocument(companyId, id);
-  }
-
-  async getLatest(companyId: string, type: LegalDocumentType) {
+  getLatest(companyId: string, type: LegalDocumentType) {
     return getLatestLegalDocument(companyId, type);
   }
 
-  async getPublished(companyId: string, type: LegalDocumentType) {
+  getPublished(companyId: string, type: LegalDocumentType) {
     return getPublishedLegalDocument(companyId, type);
   }
 
-  async listVersions(companyId: string, type: LegalDocumentType) {
+  listVersions(companyId: string, type: LegalDocumentType) {
     return listLegalDocumentVersions(companyId, type);
   }
 
-  async listAll(companyId: string) {
+  listDocuments(companyId: string) {
     return listCompanyLegalDocuments(companyId);
+  }
+
+  archive(companyId: string, id: string) {
+    return archiveLegalDocument(companyId, id);
   }
 }
 

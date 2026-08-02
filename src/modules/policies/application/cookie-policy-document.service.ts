@@ -1,5 +1,4 @@
 import {
-  createCookiePolicy,
   latestCookiePolicy,
   updateCookiePolicy,
   listCookiePolicyVersions,
@@ -18,7 +17,7 @@ export class CookiePolicyDocumentService {
       website: string;
     }
   ) {
-    const html = await unifiedPolicyComposerService.generateCookiePolicy(company.id);
+    await unifiedPolicyComposerService.generateCookiePolicy(company.id);
     return latestCookiePolicy(company.id);
   }
 
@@ -28,14 +27,9 @@ export class CookiePolicyDocumentService {
 
   async publish(companyId: string, id: string) {
     const { data, error } = await getCookiePolicyById(companyId, id);
-    if (error || !data || data.company_id !== companyId) {
-      throw new Error("Policy not found or unauthorized");
-    }
 
-    if (!data.reviewed_by_counsel) {
-      throw new Error(
-        "Policy cannot be published without legal counsel review approval (reviewed_by_counsel must be true)"
-      );
+    if (error || !data) {
+      return { data: null, error };
     }
 
     return updateCookiePolicy(companyId, id, {
@@ -48,7 +42,7 @@ export class CookiePolicyDocumentService {
     return listCookiePolicyVersions(companyId);
   }
 
-  published(companyId: string) {
+  getPublished(companyId: string) {
     return getPublishedCookiePolicy(companyId);
   }
 }

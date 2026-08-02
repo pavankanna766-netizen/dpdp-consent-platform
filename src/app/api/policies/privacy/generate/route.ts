@@ -10,39 +10,8 @@ export async function POST() {
     const { userId } = await auth();
     if (!userId) throw new UnauthorizedError();
 
-    const company = await ensureCompany(
-      userId,
-      "My Company"
-    );
-
-    const result =
-      await privacyDocumentService.generate(
-        company.id,
-        {
-          companyName:
-            company.company_name,
-
-          legalEntity:
-            company.company_name,
-
-          website:
-            company.website ?? "",
-
-          contactEmail: "",
-
-          supportEmail: "",
-
-          dpoEmail: "",
-
-          address: "",
-
-          country:
-            company.country,
-
-          lastUpdated:
-            new Date().toISOString(),
-        }
-      );
+    const company = await ensureCompany(userId, "My Company");
+    const result = await privacyDocumentService.generate(company.id);
 
     return successResponse(result.data);
   } catch (error) {

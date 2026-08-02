@@ -14,19 +14,12 @@ import {
   Heading1,
   Heading2,
   Heading3,
-  Table as TableIcon,
   Minus,
-  Sparkles,
-  Save,
   CheckCircle2,
-  AlertTriangle,
   History,
   FileText,
   Variable,
   Tag,
-  Check,
-  ChevronRight,
-  Shield,
   Send,
   RotateCcw,
 } from "lucide-react";
@@ -56,22 +49,20 @@ export function LegalDocumentEditor({ initialDocument, versions = [], companyNam
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const [documentId, setDocumentId] = useState(initialDocument.id);
+  const [documentId] = useState(initialDocument.id);
   const [docType, setDocType] = useState<LegalDocumentType>(initialDocument.document_type);
   const [title, setTitle] = useState(initialDocument.title);
   const [slug, setSlug] = useState(initialDocument.slug);
   const [status, setStatus] = useState(initialDocument.status);
-  const [version, setVersion] = useState(initialDocument.version);
+  const [version] = useState(initialDocument.version);
   const [htmlContent, setHtmlContent] = useState(initialDocument.html_content);
   const [reviewedByCounsel, setReviewedByCounsel] = useState(initialDocument.reviewed_by_counsel);
   const [counselName, setCounselName] = useState(initialDocument.reviewed_by || "");
-  const [metadata, setMetadata] = useState<Record<string, unknown>>(initialDocument.metadata || {});
 
   // Editor states & outline
   const editorRef = useRef<HTMLDivElement>(null);
   const [outline, setOutline] = useState<OutlineItem[]>([]);
   const [autosaveStatus, setAutosaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
-  const [activeTab, setActiveTab] = useState<"editor" | "outline" | "versions" | "variables">("editor");
 
   // Extract document outline from HTML headings
   useEffect(() => {
@@ -92,7 +83,6 @@ export function LegalDocumentEditor({ initialDocument, versions = [], companyNam
 
   // Debounced Autosave (Every 3 seconds of idle time)
   useEffect(() => {
-    setAutosaveStatus("unsaved");
     const timer = setTimeout(() => {
       setAutosaveStatus("saving");
       // Simulate debounced autosave background persist

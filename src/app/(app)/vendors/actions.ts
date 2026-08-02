@@ -8,7 +8,6 @@ import {
   createVendor,
   updateVendor,
   deleteVendor,
-  linkVendorToInventory,
 } from "@/repositories/vendor.repository";
 
 export async function createVendorAction(values: {
@@ -71,15 +70,6 @@ export async function deleteVendorAction(id: string) {
     if (!userId) throw new UnauthorizedError();
     const company = await ensureCompany(userId, "My Company");
     await deleteVendor(company.id, id);
-    return { success: true };
-  });
-}
-
-export async function linkVendorToInventoryAction(vendorId: string, dataInventoryId: string) {
-  return withPlatform(async () => {
-    const { userId } = await auth();
-    if (!userId) throw new UnauthorizedError();
-    await linkVendorToInventory(vendorId, dataInventoryId);
     return { success: true };
   });
 }

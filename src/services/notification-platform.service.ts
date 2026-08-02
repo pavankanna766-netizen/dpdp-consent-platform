@@ -76,7 +76,7 @@ export class NotificationPlatformService {
       const branding = brandingRes.data;
 
       // 3. Render Branded HTML Template
-      const { subject, html } = notificationTemplateEngine.renderEmail({
+      const { subject } = notificationTemplateEngine.renderEmail({
         eventType: event.eventType,
         companyName: branding?.privacy_contact ? "Company Legal Entity" : "Company Name",
         recipientEmail: event.recipientEmail,

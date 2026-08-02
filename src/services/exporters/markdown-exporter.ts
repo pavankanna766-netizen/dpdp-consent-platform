@@ -13,7 +13,7 @@ export class MarkdownExportService {
     md += `---\n\n`;
 
     // Convert HTML tags to Markdown
-    let clean = options.resolvedHtml
+    const clean = options.resolvedHtml
       .replace(/<h1[^>]*>(.*?)<\/h1>/gi, "\n# $1\n\n")
       .replace(/<h2[^>]*>(.*?)<\/h2>/gi, "\n## $1\n\n")
       .replace(/<h3[^>]*>(.*?)<\/h3>/gi, "\n### $1\n\n")

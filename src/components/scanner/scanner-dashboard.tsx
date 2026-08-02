@@ -1,141 +1,79 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-import {
-  HistoryCard,
-  SummaryCard,
-  PrivacyScore,
-  TrackerTable,
-  FindingsTable,
-  DownloadPdfButton,
-  LoadingState,
-  EmptyState,
-  ErrorState,
-  ExecutiveSummaryCard,
-  ScoreHistoryChart,
-  ImprovementCard,
-  PrivacyTrend,
-  StatusChip,
-  ProgressCard,
-  TechnologyStackCard,
-  ConsentModeCard,
-  ChangeSummary,
-  GenerateCookiePolicyButton,
-} from "@/components/scanner";
-
 import { useScanner } from "./scanner-context";
 import { useScanProgress } from "./use-scan-progress";
+import { ValidationTable } from "./validation-table";
 
 interface SummaryResponse {
-  dashboard: {
-    score: number;
-    cookies: number;
-    trackers: number;
-    findings: number;
-    risk: string;
+  scan: {
+    id: string;
+    url: string;
+    status: string;
+    overall_score: number;
+    completed_at: string | null;
   };
-
-  executiveSummary: {
-    title: string;
-    summary: string;
-    risk: "Low" | "Moderate" | "High" | "Critical";
+  summary: {
+    overview: {
+      totalCookies: number;
+      unclassifiedCookies: number;
+      totalTrackers: number;
+      totalFindings: number;
+    };
+    categoryBreakdown: Record<string, number>;
   };
-
-  changes: {
-    type: "added" | "removed" | "changed";
+  findings: Array<{
+    id: string;
     title: string;
     description: string;
-    severity: "low" | "medium" | "high";
-  }[];
-
-  consentMode: {
-    status: string;
-    implementation: string;
-    score: number;
-    checks: {
-      name: string;
-      passed: boolean;
-    }[];
-  };
-
-  detections: {
-    id: string;
-    provider: string;
+    severity: "critical" | "high" | "medium" | "low";
+  }>;
+  cookies: Array<{
+    name: string;
+    domain: string;
     category: string;
-  }[];
-
-  trend: {
-    current: number;
-    previous: number | null;
-    change: number;
-    trend: "up" | "down" | "same";
-    history: {
-      id: string;
-      score: number;
-      createdAt: string;
-    }[];
-  };
-
-  technologyStack: {
-    title: string;
-    items: string[];
-  }[];
-
-  findings: {
-    id: string;
-    title: string;
-    recommendation: string;
-    severity?: string;
-    evidence?: {
-      cookie?: string;
-      tracker?: string;
-      domain?: string;
-      secure?: boolean;
-      httpOnly?: boolean;
-      sameSite?: string;
-      rule?: string;
-    };
-  }[];
+  }>;
 }
 
 export function ScannerDashboard() {
   const { selectedScanId, setSelectedScanId, refreshKey } = useScanner();
-
   const progress = useScanProgress(selectedScanId ?? undefined);
 
   const [data, setData] = useState<SummaryResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLoadingLatest, setIsLoadingLatest] = useState(true);
+  const [isLoadingLatest, setIsLoadingLatest] = useState(!selectedScanId);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function loadLatest() {
       try {
         const latest = await fetch("/api/scanner/latest");
 
         if (!latest.ok) {
-          setIsLoadingLatest(false);
+          if (isMounted) setIsLoadingLatest(false);
           return;
         }
 
         const json = await latest.json();
         const scan = json.data ?? json;
 
-        if (scan && scan.id) {
+        if (scan && scan.id && isMounted) {
           setSelectedScanId(scan.id);
         }
       } catch (e) {
         console.error("Failed to load latest scan", e);
       } finally {
-        setIsLoadingLatest(false);
+        if (isMounted) setIsLoadingLatest(false);
       }
     }
 
     if (!selectedScanId) {
       loadLatest();
-    } else {
-      setIsLoadingLatest(false);
     }
+    return () => {
+      isMounted = false;
+    };
   }, [selectedScanId, setSelectedScanId, refreshKey]);
 
   useEffect(() => {
@@ -150,100 +88,93 @@ export function ScannerDashboard() {
         const response = await fetch(`/api/scanner/${selectedScanId}`);
 
         if (!response.ok) {
-          throw new Error("Failed to load scan.");
+          throw new Error("Failed to fetch scan results.");
         }
 
         const json = await response.json();
         setData(json.data ?? json);
-      } catch (error) {
-        setError(
-          error instanceof Error ? error.message : "Unknown error."
-        );
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Failed to load scan summary.";
+        setError(msg);
       }
     }
 
     loadSummary();
   }, [selectedScanId, refreshKey]);
 
+  if (isLoadingLatest && !selectedScanId) {
+    return (
+      <div className="p-8 text-center text-sm text-gray-500">
+        Loading latest privacy scan audit...
+      </div>
+    );
+  }
+
   if (error) {
-    return <ErrorState message={error} />;
-  }
-
-  if (isLoadingLatest) {
-    return <LoadingState />;
-  }
-
-  if (!selectedScanId) {
-    return <EmptyState />;
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        {error}
+      </div>
+    );
   }
 
   if (!data) {
-    return <LoadingState />;
+    return (
+      <div className="mt-6 rounded-xl border border-dashed p-8 text-center text-gray-500">
+        No active scan selected. Run a scan above to view compliance metrics.
+      </div>
+    );
   }
 
+  const { scan, summary, findings } = data;
+  const isRunning = scan.status === "running" || scan.status === "pending";
+
   return (
-    <div className="space-y-8">
-      <ExecutiveSummaryCard
-        title={data.executiveSummary.title}
-        summary={data.executiveSummary.summary}
-        risk={data.executiveSummary.risk}
-      />
+    <div className="mt-6 space-y-6">
+      {/* Overview Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+        <div className="rounded-xl border bg-white p-4 shadow-sm">
+          <div className="text-xs font-semibold text-gray-500 uppercase">Privacy Score</div>
+          <div className="mt-2 text-3xl font-extrabold text-black">{scan.overall_score}/100</div>
+        </div>
 
-      <ChangeSummary changes={data.changes} />
+        <div className="rounded-xl border bg-white p-4 shadow-sm">
+          <div className="text-xs font-semibold text-gray-500 uppercase">Total Cookies</div>
+          <div className="mt-2 text-3xl font-extrabold text-black">{summary.overview.totalCookies}</div>
+        </div>
 
-      <TechnologyStackCard technologies={data.technologyStack} />
+        <div className="rounded-xl border bg-white p-4 shadow-sm">
+          <div className="text-xs font-semibold text-gray-500 uppercase">Trackers Found</div>
+          <div className="mt-2 text-3xl font-extrabold text-black">{summary.overview.totalTrackers}</div>
+        </div>
 
-      <ConsentModeCard consentMode={data.consentMode} />
+        <div className="rounded-xl border bg-white p-4 shadow-sm">
+          <div className="text-xs font-semibold text-gray-500 uppercase">Active Findings</div>
+          <div className="mt-2 text-3xl font-extrabold text-black">{findings.length}</div>
+        </div>
+      </div>
 
-      <PrivacyScore score={data.dashboard.score} />
-
-      {progress && progress.status === "running" && (
-        <ProgressCard
-          stage={progress.stage}
-          progress={progress.progress}
-          estimatedSeconds={progress.estimatedSeconds}
-        />
-      )}
-
-      <div className="grid grid-cols-3 gap-4">
-        <PrivacyTrend {...data.trend} />
-
-        <ImprovementCard change={data.trend.change} />
-
-        <div className="rounded-xl border p-6 bg-white shadow-sm">
-          <div className="text-sm text-muted-foreground">Current Status</div>
-
-          <div className="mt-4">
-            <StatusChip score={data.dashboard.score} />
+      {isRunning && progress && (
+        <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800">
+          <div className="flex justify-between font-semibold">
+            <span>Audit Stage: {progress.stage}</span>
+            <span>{progress.progress}%</span>
+          </div>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-blue-200">
+            <div
+              className="h-full bg-blue-600 transition-all duration-300"
+              style={{ width: `${progress.progress}%` }}
+            />
           </div>
         </div>
-      </div>
-
-      <ScoreHistoryChart history={data.trend.history} />
-
-      {selectedScanId && (
-        <div className="flex gap-3">
-          <DownloadPdfButton scanId={selectedScanId} />
-
-          <GenerateCookiePolicyButton scanId={selectedScanId} />
-        </div>
       )}
 
-      <div className="grid grid-cols-4 gap-4">
-        <SummaryCard title="Cookies" value={data.dashboard.cookies} />
-
-        <SummaryCard title="Trackers" value={data.dashboard.trackers} />
-
-        <SummaryCard title="Findings" value={data.dashboard.findings} />
-
-        <SummaryCard title="Risk" value={data.dashboard.risk} />
-      </div>
-
-      <TrackerTable trackers={data.detections} />
-
-      <FindingsTable findings={data.findings} />
-
-      <HistoryCard />
+      {/* Validation Table */}
+      <ValidationTable
+        websites={[
+          { name: "Scanned Domain Target", url: scan.url },
+        ]}
+      />
     </div>
   );
 }

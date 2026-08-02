@@ -1,12 +1,9 @@
 import {
   ShieldCheck,
   FileText,
-  CheckCircle2,
   ExternalLink,
   Lock,
-  Globe2,
   Mail,
-  Building2,
   Award,
 } from "lucide-react";
 import type { TrustCenterDashboard } from "@/modules/trust-center/domain/trust-center-dashboard";
@@ -25,138 +22,146 @@ export function TrustCenterPublic({ company, dashboard }: Props) {
   const isHealthy = score >= 80;
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900 pb-16">
+    <main className="min-h-screen bg-slate-50 text-slate-900 pb-16 font-sans">
       {/* Top Banner Header */}
       <header className="bg-slate-900 text-white py-12 border-b border-slate-800">
-        <div className="mx-auto max-w-6xl px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="mx-auto max-w-5xl px-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-              Live Operational Trust Portal
+            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400 border border-emerald-500/20">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              Verified Enterprise Compliance Portal
             </div>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+            <h1 className="text-3xl font-extrabold tracking-tight text-white">
               {company.company_name} Trust Center
             </h1>
-            <p className="text-sm text-slate-400 max-w-2xl">
-              Official statutory compliance disclosures, subprocessor directory, security commitments, and DPDP Act 2023 verification portal.
+            <p className="text-slate-400 text-sm max-w-2xl">
+              Statutory DPDP Act 2023 privacy disclosures, subprocessor agreements, and security certifications.
             </p>
           </div>
 
-          {/* Privacy Score Card */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-5 shrink-0 text-center space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Privacy Score</span>
-            <div className={`text-4xl font-black ${isHealthy ? "text-emerald-400" : "text-amber-400"}`}>
-              {score} <span className="text-lg font-bold text-slate-500">/ 100</span>
-            </div>
-            <div className="text-[11px] font-semibold text-slate-400 flex items-center justify-center gap-1">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-              Verified Compliant
-            </div>
-          </div>
+          {company.website && (
+            <a
+              href={company.website}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-200 hover:bg-slate-700 hover:text-white transition border border-slate-700 shadow-sm"
+            >
+              Visit Company Website <ExternalLink className="h-4 w-4" />
+            </a>
+          )}
         </div>
       </header>
 
-      <div className="mx-auto max-w-6xl px-6 py-10 space-y-10">
-        {/* Security Certifications */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 flex items-center gap-4 shadow-sm">
-            <div className="rounded-xl bg-indigo-50 p-3 text-indigo-600">
-              <ShieldCheck className="h-6 w-6" />
+      {/* Main Content Container */}
+      <div className="mx-auto max-w-5xl px-6 pt-10 space-y-8">
+        {/* Compliance Badges Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wider">Privacy Audit Score</span>
+              <ShieldCheck className={`h-5 w-5 ${isHealthy ? "text-emerald-500" : "text-amber-500"}`} />
             </div>
-            <div>
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">DPDP Act 2023</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Statutory Notice Compliant</p>
+            <div className="text-3xl font-extrabold text-slate-900">
+              {score} <span className="text-xs text-slate-500 font-normal">/ 100</span>
             </div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 flex items-center gap-4 shadow-sm">
-            <div className="rounded-xl bg-emerald-50 p-3 text-emerald-600">
-              <Award className="h-6 w-6" />
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">ISO 27001 Certified</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Information Security Standard</p>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 flex items-center gap-4 shadow-sm">
-            <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
-              <Lock className="h-6 w-6" />
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">SOC 2 Type II</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Trust Services Criteria</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Statutory Policy Disclosures */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <FileText className="h-5 w-5 text-indigo-600" /> Published Disclosures & Statutory Notices
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Privacy Policy Card */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="text-base font-bold text-slate-900">Privacy Policy</h4>
-                  <p className="text-xs text-slate-500 mt-1">Data processing notice & rights disclosures.</p>
-                </div>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${dashboard.privacy ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"}`}>
-                  {dashboard.privacy ? "Published" : "Pending"}
-                </span>
-              </div>
-              {company.slug && (
-                <a
-                  href={`/p/${company.slug}/privacy`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800"
-                >
-                  View Statutory Notice <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              )}
-            </div>
-
-            {/* Cookie Policy Card */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="text-base font-bold text-slate-900">Cookie Policy</h4>
-                  <p className="text-xs text-slate-500 mt-1">Cookie categories & tracker disclosures.</p>
-                </div>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${dashboard.cookies ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"}`}>
-                  {dashboard.cookies ? "Published" : "Pending"}
-                </span>
-              </div>
-              {company.slug && (
-                <a
-                  href={`/p/${company.slug}/cookies`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800"
-                >
-                  View Statutory Notice <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Security & DPO Contacts */}
-        <div className="rounded-2xl border border-indigo-100 bg-indigo-50/30 p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
-          <div className="space-y-1">
-            <h4 className="text-sm font-bold text-indigo-900 uppercase tracking-wide flex items-center gap-2">
-              <Mail className="h-4 w-4 text-indigo-600" /> Data Protection Officer & Grievance Contact
-            </h4>
-            <p className="text-xs text-indigo-800">
-              For privacy inquiries, grievance redressal, or exercising your Data Principal rights under DPDP Act Section 13.
+            <p className="text-xs text-slate-600">
+              Evaluated based on telemetry controls, cookie banners, and statutory legal disclosures.
             </p>
           </div>
-          <div className="text-right shrink-0">
-            <span className="text-xs font-bold text-indigo-950">privacy@{company.website ? new URL(company.website).hostname.replace(/^www\./, "") : "company.com"}</span>
+
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wider">Data Protection Standard</span>
+              <Lock className="h-5 w-5 text-indigo-500" />
+            </div>
+            <div className="text-xl font-bold text-slate-900">DPDP Act 2023</div>
+            <p className="text-xs text-slate-600">
+              Aligned with Sections 6, 8, and 11-14 of India Statutory DPDP Law.
+            </p>
           </div>
+
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wider">Active Certification</span>
+              <Award className="h-5 w-5 text-amber-500" />
+            </div>
+            <div className="text-xl font-bold text-slate-900">SOC 2 Type II Ready</div>
+            <p className="text-xs text-slate-600">
+              Subprocessors undergo annual security vulnerability assessments.
+            </p>
+          </div>
+        </div>
+
+        {/* Legal Disclosures Section */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6">
+          <div className="border-b pb-4">
+            <h2 className="text-xl font-bold text-slate-900">Published Statutory Notices</h2>
+            <p className="text-xs text-slate-500">Official legal documents governing data principal rights and telemetry.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {dashboard.disclosures?.privacyPolicy && (
+              <div className="p-5 rounded-xl border border-slate-100 bg-slate-50 hover:border-slate-300 transition space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-indigo-600 font-semibold text-sm">
+                    <FileText className="h-4 w-4" /> Privacy Policy
+                  </div>
+                  <span className="text-xs bg-indigo-100 text-indigo-700 font-medium px-2 py-0.5 rounded">
+                    v{dashboard.disclosures.privacyPolicy.version}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 line-clamp-2">
+                  Comprehensive notice on data inventory, legal grounds, retention periods, and DPO contacts.
+                </p>
+                <a
+                  href={dashboard.disclosures.privacyPolicy.url || "#"}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+                >
+                  View Policy <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            )}
+
+            {dashboard.disclosures?.cookiePolicy && (
+              <div className="p-5 rounded-xl border border-slate-100 bg-slate-50 hover:border-slate-300 transition space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-indigo-600 font-semibold text-sm">
+                    <FileText className="h-4 w-4" /> Cookie Policy
+                  </div>
+                  <span className="text-xs bg-indigo-100 text-indigo-700 font-medium px-2 py-0.5 rounded">
+                    v{dashboard.disclosures.cookiePolicy.version}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 line-clamp-2">
+                  Detailed breakdown of strictly necessary, functional, and marketing cookies.
+                </p>
+                <a
+                  href={dashboard.disclosures.cookiePolicy.url || "#"}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+                >
+                  View Policy <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* DPO Contact Box */}
+        <div className="bg-gradient-to-r from-indigo-900 to-slate-900 text-white rounded-2xl p-8 shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-2">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <Mail className="h-5 w-5 text-indigo-400" /> Data Protection Officer (DPO)
+            </h3>
+            <p className="text-xs text-slate-300 max-w-xl">
+              Exercise your Data Principal Rights under Sections 11-14 of the DPDP Act 2023 or report security vulnerabilities.
+            </p>
+          </div>
+          <a
+            href={`mailto:dpo@${company.website?.replace(/^https?:\/\//, "") || "company.com"}`}
+            className="px-5 py-3 rounded-xl bg-white text-indigo-950 font-semibold text-sm hover:bg-indigo-50 transition shadow-sm whitespace-nowrap"
+          >
+            Contact DPO
+          </a>
         </div>
       </div>
     </main>

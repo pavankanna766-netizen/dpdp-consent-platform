@@ -23,7 +23,7 @@ export async function GET() {
       db: "connected",
       tables: data?.tables ?? null,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         status: "unhealthy",

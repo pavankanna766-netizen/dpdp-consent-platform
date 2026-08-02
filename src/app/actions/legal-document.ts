@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { UnauthorizedError } from "@/platform/errors";
 import { ensureCompany } from "@/services/company.service";
 import { legalDocumentService } from "@/services/legal-document.service";
+import { privacyDocumentService } from "@/modules/policies/application/privacy-document.service";
 import type { LegalDocumentType } from "@/repositories/legal-document.repository";
 
 export async function generateLegalDocumentAction(type: LegalDocumentType) {
@@ -12,7 +13,7 @@ export async function generateLegalDocumentAction(type: LegalDocumentType) {
   if (!userId) throw new UnauthorizedError();
 
   const company = await ensureCompany(userId, "My Company");
-  const { data, error } = await legalDocumentService.generateDocument(company.id, type);
+  const { data, error } = await legalDocumentService.generateAutoDocument(company.id, type);
 
   if (error) throw error;
 
@@ -35,12 +36,12 @@ export async function publishLegalDocumentAction(documentId: string) {
   return data;
 }
 
-export async function counselApproveLegalDocumentAction(documentId: string, counselName: string) {
+export async function counselApproveLegalDocumentAction(documentId: string, _counselName?: string) {
   const { userId } = await auth();
   if (!userId) throw new UnauthorizedError();
 
   const company = await ensureCompany(userId, "My Company");
-  const { data, error } = await legalDocumentService.approveByCounsel(company.id, documentId, counselName);
+  const { data, error } = await legalDocumentService.markCounselSignoff(company.id, documentId, true);
 
   if (error) throw error;
 
@@ -54,7 +55,7 @@ export async function restoreLegalDocumentVersionAction(documentId: string) {
   if (!userId) throw new UnauthorizedError();
 
   const company = await ensureCompany(userId, "My Company");
-  const { data, error } = await legalDocumentService.restoreVersion(company.id, documentId);
+  const { data, error } = await privacyDocumentService.restoreVersion(company.id, documentId);
 
   if (error) throw error;
 

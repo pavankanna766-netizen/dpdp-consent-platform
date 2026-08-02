@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { ensureCompany } from "@/services/company.service";
-import { getComplianceGraph } from "@/services/compliance-relationship.service";
+import { complianceRelationshipService } from "@/services/compliance-relationship.service";
 
 export async function GET() {
   try {
@@ -11,7 +11,7 @@ export async function GET() {
     }
 
     const company = await ensureCompany(userId, "My Company");
-    const graph = await getComplianceGraph(company.id);
+    const graph = await complianceRelationshipService.getGraph(company.id);
 
     return NextResponse.json(graph);
   } catch (error: unknown) {

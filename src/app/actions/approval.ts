@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { UnauthorizedError } from "@/platform/errors";
 import { ensureCompany } from "@/services/company.service";
 import { approvalService } from "@/services/approval.service";
+import { legalDocumentService } from "@/services/legal-document.service";
 import type { SignatureType } from "@/repositories/signature.repository";
 
 export async function submitForReviewAction(documentId: string) {
@@ -12,7 +13,7 @@ export async function submitForReviewAction(documentId: string) {
   if (!userId) throw new UnauthorizedError();
 
   const company = await ensureCompany(userId, "My Company");
-  const data = await approvalService.submitForReview(company.id, documentId);
+  const data = await approvalService.initializeApprovalWorkflow(company.id, documentId, userId);
 
   revalidatePath("/dashboard/studio");
   return data;
@@ -33,7 +34,14 @@ export async function addSignatureAction(
   if (!userId) throw new UnauthorizedError();
 
   const company = await ensureCompany(userId, "My Company");
-  const data = await approvalService.addSignature(company.id, documentId, signer);
+  const data = await approvalService.signDocument({
+    companyId: company.id,
+    documentId,
+    signerName: signer.name,
+    signerEmail: signer.email,
+    signerRole: signer.role,
+    signatureType: signer.signatureType,
+  });
 
   revalidatePath("/dashboard/studio");
   return data;
@@ -44,7 +52,7 @@ export async function publishApprovedDocumentAction(documentId: string) {
   if (!userId) throw new UnauthorizedError();
 
   const company = await ensureCompany(userId, "My Company");
-  const data = await approvalService.publishDocumentWithApproval(company.id, documentId);
+  const data = await legalDocumentService.publishDocument(company.id, documentId);
 
   revalidatePath("/dashboard/studio");
   return data;

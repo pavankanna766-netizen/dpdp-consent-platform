@@ -1,49 +1,34 @@
 import {
-  createPrivacyPolicy,
   getLatestPrivacyPolicy,
   updatePrivacyPolicy,
-  archivePrivacyPolicy,
-  getPrivacyPolicyById,
   listPolicyVersions,
   getPublishedPrivacyPolicy,
+  getPrivacyPolicyById,
 } from "@/repositories/privacy-policy.repository";
 
 import { unifiedPolicyComposerService } from "./unified-policy-composer.service";
-import type { LegalProfile } from "../domain/legal-profile";
 
 export class PrivacyDocumentService {
-  create(companyId: string, html: string) {
-    return createPrivacyPolicy({
-      company_id: companyId,
-      html_content: html,
-    });
-  }
-
   latest(companyId: string) {
     return getLatestPrivacyPolicy(companyId);
-  }
-
-  published(companyId: string) {
-    return getPublishedPrivacyPolicy(companyId);
   }
 
   versions(companyId: string) {
     return listPolicyVersions(companyId);
   }
 
-  archive(companyId: string, id: string) {
-    return archivePrivacyPolicy(companyId, id);
+  getPublished(companyId: string) {
+    return getPublishedPrivacyPolicy(companyId);
   }
 
-  async restore(companyId: string, id: string) {
-    const { data, error } = await getPrivacyPolicyById(companyId, id);
+  async restoreVersion(companyId: string, versionId: string) {
+    const { data, error } = await getPrivacyPolicyById(companyId, versionId);
 
-    if (error || !data || data.company_id !== companyId) {
-      throw error ?? new Error("Policy not found or unauthorized");
+    if (error || !data) {
+      return { data: null, error };
     }
 
-    return updatePrivacyPolicy(companyId, id, {
-      archived: false,
+    return updatePrivacyPolicy(companyId, versionId, {
       status: "published",
       published_at: new Date().toISOString(),
     });
@@ -51,7 +36,8 @@ export class PrivacyDocumentService {
 
   async publish(companyId: string, id: string) {
     const { data, error } = await getPrivacyPolicyById(companyId, id);
-    if (error || !data || data.company_id !== companyId) {
+
+    if (error || !data) {
       throw new Error("Policy not found or unauthorized");
     }
 
@@ -67,8 +53,8 @@ export class PrivacyDocumentService {
     });
   }
 
-  async generate(companyId: string, _profile?: LegalProfile) {
-    const html = await unifiedPolicyComposerService.generatePrivacyPolicy(companyId);
+  async generate(companyId: string) {
+    await unifiedPolicyComposerService.generatePrivacyPolicy(companyId);
     return getLatestPrivacyPolicy(companyId);
   }
 }

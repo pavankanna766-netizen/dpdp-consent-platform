@@ -4,16 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Palette,
-  Layout,
-  FileCheck,
   RotateCcw,
-  Sparkles,
   Check,
-  Globe,
-  Mail,
-  Shield,
-  Phone,
-  Building,
   Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";

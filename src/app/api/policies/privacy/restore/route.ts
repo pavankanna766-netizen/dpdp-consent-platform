@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
     const body = RestoreSchema.parse(await request.json());
     const company = await ensureCompany(userId, "My Company");
-    const result = await privacyDocumentService.restore(company.id, body.id);
+    const result = await privacyDocumentService.restoreVersion(company.id, body.id);
 
     return successResponse(result.data);
   } catch (error) {

@@ -77,7 +77,6 @@ export function OnboardingWizard({ initialState }: Props) {
   });
 
   const completionPercentage = initialState.completionPercentage;
-  const checklist = initialState.checklist;
 
   const handleNextStep = (nextStep: number) => {
     setCurrentStep(nextStep);
