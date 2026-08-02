@@ -7,10 +7,14 @@ import { notFoundResponse, validationErrorResponse } from "@/platform/http/respo
 
 const tokenSchema = z.string().uuid();
 
-export async function GET(request: NextRequest, { params }: RouteContext<"/api/banner/runtime/[token]">) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ token: string }> }
+) {
   try {
     await limitPublicBannerRequest(request, 120);
-    const token = tokenSchema.parse((await params).token);
+    const { token: rawToken } = await params;
+    const token = tokenSchema.parse(rawToken);
     const config = await bannerRuntimeService.getConfiguration(token);
     if (!config) return withPublicBannerHeaders(notFoundResponse("Banner not found"));
     return Response.json(config, { headers: publicBannerHeaders({ "Cache-Control": "public, max-age=60" }) });

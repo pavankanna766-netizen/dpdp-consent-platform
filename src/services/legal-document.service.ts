@@ -79,9 +79,11 @@ export class LegalDocumentService {
     });
   }
 
-  async markCounselSignoff(companyId: string, id: string, reviewed: boolean) {
+  async markCounselSignoff(companyId: string, id: string, reviewed: boolean, counselName?: string) {
     return updateLegalDocument(companyId, id, {
       reviewed_by_counsel: reviewed,
+      reviewed_by: counselName || null,
+      reviewed_at: reviewed ? new Date().toISOString() : null,
     });
   }
 

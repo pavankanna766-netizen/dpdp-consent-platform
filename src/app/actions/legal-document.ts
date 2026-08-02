@@ -36,12 +36,12 @@ export async function publishLegalDocumentAction(documentId: string) {
   return data;
 }
 
-export async function counselApproveLegalDocumentAction(documentId: string, _counselName?: string) {
+export async function counselApproveLegalDocumentAction(documentId: string, counselName?: string) {
   const { userId } = await auth();
   if (!userId) throw new UnauthorizedError();
 
   const company = await ensureCompany(userId, "My Company");
-  const { data, error } = await legalDocumentService.markCounselSignoff(company.id, documentId, true);
+  const { data, error } = await legalDocumentService.markCounselSignoff(company.id, documentId, true, counselName);
 
   if (error) throw error;
 
