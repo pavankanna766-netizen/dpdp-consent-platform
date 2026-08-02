@@ -10,6 +10,7 @@ import {
 import { monitoringService } from "@/platform/monitoring/sentry";
 import { unifiedPolicyComposerService } from "@/modules/policies/application/unified-policy-composer.service";
 import { documentRendererService } from "@/services/document-renderer.service";
+import { notificationService, type SendEmailPayload } from "@/services/notification.service";
 
 export class TriggerJobOrchestrator {
   async trigger(options: {
@@ -43,7 +44,11 @@ export class TriggerJobOrchestrator {
     const trace = monitoringService.startTrace(`orchestrator_job:${job.job_type}`);
 
     try {
-      if (job.job_type === "POLICY_GENERATION") {
+      if (job.job_type === "NOTIFICATION_EMAIL") {
+        await updateJobProgress(job.id, 30);
+        await notificationService.processNotificationJob(job.company_id, job.payload as unknown as SendEmailPayload);
+        await updateJobProgress(job.id, 90);
+      } else if (job.job_type === "POLICY_GENERATION") {
         await updateJobProgress(job.id, 30);
         await unifiedPolicyComposerService.generatePrivacyPolicy(job.company_id);
         await updateJobProgress(job.id, 90);
@@ -59,11 +64,9 @@ export class TriggerJobOrchestrator {
         await updateJobProgress(job.id, 90);
       } else if (job.job_type === "SCANNER_CRAWL") {
         await updateJobProgress(job.id, 50);
-        // Scanner crawl tasks execute cleanly via queue worker
         await updateJobProgress(job.id, 90);
       } else if (job.job_type === "SCHEDULED_CLEANUP") {
         await updateJobProgress(job.id, 50);
-        // Statutory 90-day telemetry log cleanup
         await updateJobProgress(job.id, 90);
       }
 
