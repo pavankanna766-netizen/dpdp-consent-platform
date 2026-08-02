@@ -67,3 +67,13 @@ export async function recordApiKeyPing(apiKey: string) {
     .select()
     .single();
 }
+
+export async function revokeApiKey(companyId: string, keyId: string) {
+  return supabaseAdmin
+    .from("api_keys")
+    .update({ is_active: false })
+    .eq("company_id", companyId)
+    .eq("id", keyId)
+    .select()
+    .single();
+}

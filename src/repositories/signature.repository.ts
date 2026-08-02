@@ -66,3 +66,11 @@ export const listSignaturesByApprovalId = cache(async function (
     .eq("approval_id", approvalId)
     .order("created_at", { ascending: true });
 });
+
+export const listCompanySignatures = cache(async function (companyId: string) {
+  return supabaseAdmin
+    .from("document_signatures")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("created_at", { ascending: false });
+});

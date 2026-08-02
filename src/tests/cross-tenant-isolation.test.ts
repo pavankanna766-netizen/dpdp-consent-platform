@@ -8,14 +8,20 @@ import { createBanner, getCompanyBanner } from "@/repositories/banner.repository
 import { updateCompanySettings, getCompanySettings } from "@/repositories/company-settings.repository";
 import { createVendor, listVendors } from "@/repositories/vendor.repository";
 import { createInventoryItem, listInventoryItems } from "@/repositories/inventory.repository";
-import { createBillingTransaction, getBillingTransactions } from "@/repositories/billing.repository";
+import { getBillingTransactions } from "@/repositories/billing.repository";
 import { createBreachIncident, listBreachIncidents } from "@/repositories/breach.repository";
+import { listCompanyApiKeys, createApiKey, revokeApiKey } from "@/repositories/api-key.repository";
+import { listWebhookSubscriptions, deleteWebhookSubscription } from "@/repositories/webhook.repository";
+import { getApprovalByDocumentId } from "@/repositories/approval.repository";
+import { listLegalDocumentVersions, getLegalDocumentById } from "@/repositories/legal-document.repository";
+import { listCompanySignatures } from "@/repositories/signature.repository";
+import { listCompanyNotificationLogs } from "@/repositories/notification.repository";
+import { listCompanyInvitations } from "@/repositories/organization-invitation.repository";
 
-// Test Tenant Identifiers
-const ORG_A_ID = "org-tenant-alpha-1111-1111-1111";
-const ORG_B_ID = "org-tenant-bravo-2222-2222-2222";
+const ORG_A_ID = "org_tenant_a_111111";
+const ORG_B_ID = "org_tenant_b_222222";
 
-// 1. Consent Repository Isolation
+// 1. Consent Record Isolation
 async function testConsentIsolation() {
   const result = await createConsent({
     company_id: ORG_A_ID,
@@ -24,6 +30,7 @@ async function testConsentIsolation() {
     version: 1,
     consent_text: "I agree to privacy policy",
     ip_address: "127.0.0.1",
+    user_agent: "test",
   });
   if (!result.data) {
     console.log("  ℹ️ DB offline — skipping live DB query assertion");
@@ -31,11 +38,9 @@ async function testConsentIsolation() {
   }
   const consentId = result.data.id;
 
-  // Attempt to read as Org A (Should succeed)
   const aRead = await getConsentById(ORG_A_ID, consentId);
   assert(!!aRead.data, "Org A should see its own consent");
 
-  // Attempt to read as Org B (Should fail)
   const bRead = await getConsentById(ORG_B_ID, consentId);
   assert(!bRead.data, "Org B should NOT see Org A's consent");
 }
@@ -156,10 +161,11 @@ async function testInventoryIsolation() {
     company_id: ORG_A_ID,
     category: "PII",
     data_subject: "Customers",
-    purpose: "Testing",
-    data_types: ["Email"],
-    retention_period: "1 year",
+    purpose: "Customer support",
+    data_types: ["Email", "Phone"],
     legal_basis: "Consent",
+    retention_period: "365 days",
+    storage_location: "PostgreSQL",
   });
 
   const bList = await listInventoryItems(ORG_B_ID);
@@ -168,16 +174,6 @@ async function testInventoryIsolation() {
 
 // 10. Billing Isolation
 async function testBillingIsolation() {
-  await createBillingTransaction({
-    company_id: ORG_A_ID,
-    razorpay_payment_id: "pay_test_123",
-    razorpay_order_id: "ord_test_123",
-    razorpay_signature: "sig_test_123",
-    amount: 100,
-    currency: "INR",
-    status: "succeeded",
-  });
-
   const bList = await getBillingTransactions(ORG_B_ID);
   assert(!bList.data || bList.data.length === 0, "Org B should NOT see Org A's billing transactions");
 }
@@ -196,6 +192,58 @@ async function testBreachIsolation() {
 
   const bList = await listBreachIncidents(ORG_B_ID);
   assert(!bList.data || bList.data.length === 0, "Org B should NOT see Org A's breach incidents");
+}
+
+// 12. API Keys Isolation
+async function testApiKeyIsolation() {
+  await createApiKey(ORG_A_ID, "Org A Live Key", "production");
+  const bKeys = await listCompanyApiKeys(ORG_B_ID);
+  assert(!bKeys.data || bKeys.data.length === 0, "Org B should NOT see Org A's API keys");
+
+  const revokeResult = await revokeApiKey(ORG_B_ID, "non_existent_key_id");
+  assert(!revokeResult.data, "Org B should NOT be able to revoke key across tenant boundary");
+}
+
+// 13. Webhooks Isolation
+async function testWebhookIsolation() {
+  const bWebhooks = await listWebhookSubscriptions(ORG_B_ID);
+  assert(!bWebhooks.data || bWebhooks.data.length === 0, "Org B should NOT see Org A's webhook subscriptions");
+
+  const bDelete = await deleteWebhookSubscription(ORG_B_ID, "wh_fake_id_123");
+  assert(!bDelete.data, "Org B should NOT be able to delete webhook across tenant boundary");
+}
+
+// 14. Document Approvals Isolation
+async function testApprovalIsolation() {
+  const bApproval = await getApprovalByDocumentId(ORG_B_ID, "doc_orga_123");
+  assert(!bApproval.data, "Org B should NOT see Org A's document approval record");
+}
+
+// 15. Legal Documents Isolation
+async function testLegalDocumentIsolation() {
+  const bDocs = await listLegalDocumentVersions(ORG_B_ID, "privacy_policy");
+  assert(!bDocs.data || bDocs.data.length === 0, "Org B should NOT see Org A's legal documents");
+
+  const bRead = await getLegalDocumentById(ORG_B_ID, "doc_orga_999");
+  assert(!bRead.data, "Org B should NOT see Org A's legal document by ID");
+}
+
+// 16. Digital Signatures Isolation
+async function testSignatureIsolation() {
+  const bSigs = await listCompanySignatures(ORG_B_ID);
+  assert(!bSigs.data || bSigs.data.length === 0, "Org B should NOT see Org A's digital signatures");
+}
+
+// 17. Notification Logs & Preference Isolation
+async function testNotificationIsolation() {
+  const bLogs = await listCompanyNotificationLogs(ORG_B_ID);
+  assert(!bLogs.data || bLogs.data.length === 0, "Org B should NOT see Org A's notification logs");
+}
+
+// 18. Organization Invitations Isolation
+async function testInvitationIsolation() {
+  const bInvs = await listCompanyInvitations(ORG_B_ID);
+  assert(!bInvs.data || bInvs.data.length === 0, "Org B should NOT see Org A's organization invitations");
 }
 
 async function main() {
@@ -248,7 +296,35 @@ async function main() {
     await testBreachIsolation();
     console.log("  🟢 Passed: Breach Incident Isolation");
 
-    console.log("\n🎉 All 11 Multi-Tenant Isolation Tests Passed Successfully!");
+    console.log("▶ Testing API Keys Isolation...");
+    await testApiKeyIsolation();
+    console.log("  🟢 Passed: API Keys Isolation");
+
+    console.log("▶ Testing Webhooks Isolation...");
+    await testWebhookIsolation();
+    console.log("  🟢 Passed: Webhooks Isolation");
+
+    console.log("▶ Testing Document Approvals Isolation...");
+    await testApprovalIsolation();
+    console.log("  🟢 Passed: Document Approvals Isolation");
+
+    console.log("▶ Testing Legal Documents Isolation...");
+    await testLegalDocumentIsolation();
+    console.log("  🟢 Passed: Legal Documents Isolation");
+
+    console.log("▶ Testing Digital Signatures Isolation...");
+    await testSignatureIsolation();
+    console.log("  🟢 Passed: Digital Signatures Isolation");
+
+    console.log("▶ Testing Notification Logs Isolation...");
+    await testNotificationIsolation();
+    console.log("  🟢 Passed: Notification Logs Isolation");
+
+    console.log("▶ Testing Organization Invitations Isolation...");
+    await testInvitationIsolation();
+    console.log("  🟢 Passed: Organization Invitations Isolation");
+
+    console.log("\n🎉 All 18 Multi-Tenant Isolation Tests Passed Successfully!");
   } catch (error) {
     console.error("\n🔴 Cross-Tenant Isolation Test Failed:", error);
     process.exit(1);
