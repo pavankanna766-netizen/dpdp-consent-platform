@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { redisCache } from "@/platform/cache/redis";
+import { redis } from "@/platform/cache/redis-client";
 
 export async function GET() {
   const startTime = performance.now();
@@ -9,14 +9,13 @@ export async function GET() {
     // 1. Database Ping
     const { error: dbError } = await supabaseAdmin.from("companies").select("id").limit(1);
 
-    // 2. Redis Ping
-    await redisCache.set("health_check_ping", "ok", 10);
-    const redisVal = await redisCache.get<string>("health_check_ping");
+    // 2. Redis Health Check (real Upstash ping)
+    const redisHealth = await redis.healthCheck();
 
     const duration = performance.now() - startTime;
 
     const isDbHealthy = !dbError;
-    const isRedisHealthy = redisVal === "ok";
+    const isRedisHealthy = redisHealth.healthy;
 
     const isReady = isDbHealthy && isRedisHealthy;
 
@@ -28,6 +27,8 @@ export async function GET() {
         checks: {
           database: isDbHealthy ? "up" : "down",
           redis: isRedisHealthy ? "up" : "down",
+          redisLatencyMs: redisHealth.latencyMs,
+          redisDegraded: redis.isDegraded,
           storage: "up",
           workers: "up",
         },

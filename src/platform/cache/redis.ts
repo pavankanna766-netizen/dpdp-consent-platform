@@ -1,37 +1,28 @@
+import { redis } from "./redis-client";
+
+// ---------------------------------------------------------------------------
+// Backward-compatible UpstashRedisCache wrapper
+// ---------------------------------------------------------------------------
+// Existing consumers import `redisCache` from this module.
+// This facade now delegates to the production Upstash REST client
+// while preserving the original API surface.
+// ---------------------------------------------------------------------------
+
 export class UpstashRedisCache {
-  private memoryStore: Map<string, { value: unknown; expiresAt: number }>;
-
-  constructor() {
-    this.memoryStore = new Map();
-  }
-
   async get<T>(key: string): Promise<T | null> {
-    const item = this.memoryStore.get(key);
-    if (!item) return null;
-
-    if (Date.now() > item.expiresAt) {
-      this.memoryStore.delete(key);
-      return null;
-    }
-
-    return item.value as T;
+    return redis.get<T>(key);
   }
 
   async set(key: string, value: unknown, ttlSeconds: number = 300): Promise<void> {
-    const expiresAt = Date.now() + ttlSeconds * 1000;
-    this.memoryStore.set(key, { value, expiresAt });
+    await redis.set(key, value, ttlSeconds);
   }
 
   async delete(key: string): Promise<void> {
-    this.memoryStore.delete(key);
+    await redis.del(key);
   }
 
   async invalidatePattern(patternPrefix: string): Promise<void> {
-    for (const key of this.memoryStore.keys()) {
-      if (key.startsWith(patternPrefix)) {
-        this.memoryStore.delete(key);
-      }
-    }
+    await redis.invalidatePattern(patternPrefix);
   }
 }
 
