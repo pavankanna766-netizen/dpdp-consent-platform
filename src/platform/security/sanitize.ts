@@ -4,7 +4,8 @@
  */
 export function stripHtml(input: string): string {
   if (!input) return "";
-  return input.replace(/<[^>]*>/g, '').trim();
+  const cleaned = input.replace(/javascript\s*:/gi, '');
+  return cleaned.replace(/<[^>]*>/g, '').trim();
 }
 
 /**

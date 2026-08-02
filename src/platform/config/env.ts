@@ -22,6 +22,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),
+  RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
