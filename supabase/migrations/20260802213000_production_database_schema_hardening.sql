@@ -47,8 +47,8 @@ DECLARE
 BEGIN
   FOREACH t IN ARRAY tbls LOOP
     IF EXISTS (
-      SELECT 1 FROM information_schema.tables 
-      WHERE table_schema = 'public' AND table_name = t
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_schema = 'public' AND table_name = t AND column_name = 'updated_at'
     ) THEN
       EXECUTE format('DROP TRIGGER IF EXISTS trg_set_updated_at ON %I;', t);
       EXECUTE format('CREATE TRIGGER trg_set_updated_at BEFORE UPDATE ON %I FOR EACH ROW EXECUTE FUNCTION set_updated_at();', t);
@@ -57,58 +57,70 @@ BEGIN
 END $$;
 
 -- ----------------------------------------------------------------------------
--- 3. COMPOSITE & HIGH-PERFORMANCE INDEXES
+-- 3. COMPOSITE & HIGH-PERFORMANCE INDEXES (COLUMN-GUARDED)
 -- ----------------------------------------------------------------------------
--- Consents & Audit Logs
 DO $$
 BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'consents') THEN
+  -- Consents
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'consents' AND column_name = 'company_id') THEN
     CREATE INDEX IF NOT EXISTS idx_consents_company_created ON consents (company_id, created_at DESC);
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_logs') THEN
+  -- Audit Logs
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'audit_logs' AND column_name = 'company_id') THEN
     CREATE INDEX IF NOT EXISTS idx_audit_logs_company_created ON audit_logs (company_id, created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_audit_logs_company_event ON audit_logs (company_id, event_type, created_at DESC);
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'dsar_requests') THEN
+  -- DSAR Requests
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'dsar_requests' AND column_name = 'company_id') THEN
     CREATE INDEX IF NOT EXISTS idx_dsar_requests_company_status ON dsar_requests (company_id, status, created_at DESC);
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'dsar_requests' AND column_name = 'sla_due_date') THEN
     CREATE INDEX IF NOT EXISTS idx_dsar_sla_pending ON dsar_requests (sla_due_date) WHERE status = 'pending';
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'vendor_registry') THEN
+  -- Vendor Registry & Inventory
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'vendor_registry' AND column_name = 'company_id') THEN
     CREATE INDEX IF NOT EXISTS idx_vendor_registry_company_status ON vendor_registry (company_id, status);
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'data_inventory') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'data_inventory' AND column_name = 'company_id') THEN
     CREATE INDEX IF NOT EXISTS idx_data_inventory_company_category ON data_inventory (company_id, category);
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'webhook_deliveries') THEN
+  -- Webhook Deliveries
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'webhook_deliveries' AND column_name = 'subscription_id') THEN
     CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_subscription ON webhook_deliveries (company_id, subscription_id, created_at DESC);
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'job_queue') THEN
+  -- Job Queue (run_at column)
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'job_queue' AND column_name = 'run_at') THEN
+    CREATE INDEX IF NOT EXISTS idx_job_queue_run_at ON job_queue (run_at, status) WHERE status = 'pending';
+  ELSIF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'job_queue' AND column_name = 'scheduled_at') THEN
     CREATE INDEX IF NOT EXISTS idx_job_queue_scheduled ON job_queue (scheduled_at, status) WHERE status = 'queued';
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'notification_logs') THEN
+  -- Notification Logs, Billing & Breach Incidents
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notification_logs' AND column_name = 'company_id') THEN
     CREATE INDEX IF NOT EXISTS idx_notification_logs_company ON notification_logs (company_id, created_at DESC);
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'billing_transactions') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'billing_transactions' AND column_name = 'company_id') THEN
     CREATE INDEX IF NOT EXISTS idx_billing_tx_company ON billing_transactions (company_id, created_at DESC);
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'breach_incidents') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'breach_incidents' AND column_name = 'company_id') THEN
     CREATE INDEX IF NOT EXISTS idx_breach_incidents_company ON breach_incidents (company_id, created_at DESC);
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'document_signatures') THEN
+  -- Document Signatures & API Keys
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'document_signatures' AND column_name = 'approval_id') THEN
     CREATE INDEX IF NOT EXISTS idx_document_signatures_approval ON document_signatures (company_id, approval_id);
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'api_keys') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'api_keys' AND column_name = 'api_key') THEN
     CREATE INDEX IF NOT EXISTS idx_api_keys_active ON api_keys (api_key) WHERE is_active = true;
   END IF;
 END $$;
@@ -118,23 +130,23 @@ END $$;
 -- ----------------------------------------------------------------------------
 DO $$
 BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_logs') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'audit_logs' AND column_name = 'payload') THEN
     CREATE INDEX IF NOT EXISTS idx_audit_logs_payload_gin ON audit_logs USING gin (payload);
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'notification_preferences') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notification_preferences' AND column_name = 'preferences') THEN
     CREATE INDEX IF NOT EXISTS idx_notification_prefs_gin ON notification_preferences USING gin (preferences);
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'company_settings') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'company_settings' AND column_name = 'consent') THEN
     CREATE INDEX IF NOT EXISTS idx_company_settings_consent_gin ON company_settings USING gin (consent);
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'legal_documents') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'legal_documents' AND column_name = 'sections') THEN
     CREATE INDEX IF NOT EXISTS idx_legal_docs_sections_gin ON legal_documents USING gin (sections);
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'webhook_deliveries') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'webhook_deliveries' AND column_name = 'payload') THEN
     CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_payload_gin ON webhook_deliveries USING gin (payload);
   END IF;
 END $$;
@@ -144,31 +156,31 @@ END $$;
 -- ----------------------------------------------------------------------------
 DO $$
 BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'dsar_requests') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'dsar_requests' AND column_name = 'status') THEN
     ALTER TABLE dsar_requests DROP CONSTRAINT IF EXISTS chk_dsar_status;
     ALTER TABLE dsar_requests ADD CONSTRAINT chk_dsar_status 
       CHECK (status IN ('pending', 'in_progress', 'completed', 'rejected'));
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'breach_incidents') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'breach_incidents' AND column_name = 'affected_users') THEN
     ALTER TABLE breach_incidents DROP CONSTRAINT IF EXISTS chk_breach_affected_users;
     ALTER TABLE breach_incidents ADD CONSTRAINT chk_breach_affected_users 
       CHECK (affected_users >= 0);
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'billing_transactions') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'billing_transactions' AND column_name = 'amount') THEN
     ALTER TABLE billing_transactions DROP CONSTRAINT IF EXISTS chk_billing_tx_amount;
     ALTER TABLE billing_transactions ADD CONSTRAINT chk_billing_tx_amount 
       CHECK (amount >= 0);
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'vendor_registry') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'vendor_registry' AND column_name = 'security_rating') THEN
     ALTER TABLE vendor_registry DROP CONSTRAINT IF EXISTS chk_vendor_rating;
     ALTER TABLE vendor_registry ADD CONSTRAINT chk_vendor_rating 
       CHECK (security_rating IN ('A+', 'A', 'B', 'C', 'F'));
   END IF;
 
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'notification_logs') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notification_logs' AND column_name = 'status') THEN
     ALTER TABLE notification_logs DROP CONSTRAINT IF EXISTS chk_notification_status;
     ALTER TABLE notification_logs ADD CONSTRAINT chk_notification_status 
       CHECK (status IN ('queued', 'sent', 'delivered', 'bounced', 'failed'));
